@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 
 /// Tela inicial: cadastro de equipamentos defeituosos nas salas do IF.
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _selectedIndex = 2; // Home é o índice padrão
 
   static const Color _ifGreen = Color(0xFF1B5E20);
 
@@ -12,6 +19,20 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: null,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 20),
+            child: IconButton(
+              onPressed: () {},
+              icon: const Icon(Icons.search, color: _ifGreen),
+            ),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -19,7 +40,7 @@ class HomeScreen extends StatelessWidget {
             children: [
               // Header
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -103,28 +124,43 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 28),
-
-              // Botão Cadastrar
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: FilledButton.icon(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: _ifGreen,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: () {},
-                  icon: const Icon(Icons.add_circle_outline),
-                  label: const Text('Cadastrar Equipamento'),
-                ),
-              ),
-              const SizedBox(height: 20),
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
+        selectedItemColor: _ifGreen,
+        unselectedItemColor: Colors.grey[400],
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.error_outline),
+            label: 'Reportar Defeito',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_circle_outline),
+            label: 'Cadastrar',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Configuração',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Perfil',
+          ),
+        ],
       ),
     );
   }
