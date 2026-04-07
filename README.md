@@ -108,18 +108,54 @@ git push -u origin login_screen
 
 ## 🔄 6. Atualizando seu projeto (muito importante)
 
-Antes de começar a trabalhar, sempre atualize o projeto, isso ajuda a evitar erros:
+Antes de começar a trabalhar, sempre atualize o projeto e sincronize sua branch com a `main`. Isso ajuda a evitar erros:
+
+### 6.1. Ir para a `main` e atualizar
 
 ```bash
-git switch main
+git checkout main
 git pull origin main
 ```
+---
 
-Depois volte para sua branch:
+### 6.2. Voltar para sua branch
 
 ```bash
-git switch nome-da-sua-branch
+git checkout sua-branch
 ```
+
+---
+
+### 6.3. Fazer merge da `main` na sua branch
+
+```bash
+git merge main
+```
+
+---
+
+## ⚠️ IMPORTANTE
+
+- ❗ **NÃO crie um commit manual após o merge**
+- O próprio Git já cria automaticamente um commit de merge (se necessário)
+---
+
+### 6.4. Se houver conflitos
+
+1. Abra os arquivos com conflito  
+2. Resolva manualmente (escolha o código de entrada)  
+3. Depois execute:
+
+```bash
+git add .
+git commit -m "fix: resolve conflitos com a main"
+git push
+```
+
+---
+
+
+Seguindo esse fluxo, você garante que sua branch está sempre atualizada e evita problemas na hora de integrar com o projeto 🚀
 
 ---
 
@@ -127,10 +163,11 @@ git switch nome-da-sua-branch
 
 - ✅ Trabalhe sempre na sua branch  
 - ✅ Faça commits frequentes  
-- ✅ Use mensagens claras  
+- ✅ Use mensagens claras 
+- ✅ Sempre sincronize sua branch antes de começar a trabalhar   
 - ❌ NÃO trabalhe direto na `main`  
-- ❌ NÃO altere outras telas  
-
+- ❌ NÃO altere outras telas   
+- ❌ Não deixe sua branch ficar muitos commits atrás da `main`  
 ---
 
 ## 🧠 Fluxo completo
