@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import '../models/equipment.dart';
 
 class ItemDetailScreen extends StatefulWidget {
+  final Equipment equipment;
+
+  const ItemDetailScreen({super.key, required this.equipment});
+
   @override
-  _ItemDetailScreenState createState() => _ItemDetailScreenState();
+  State<ItemDetailScreen> createState() => _ItemDetailScreenState();
 }
 
 class _ItemDetailScreenState extends State<ItemDetailScreen> {
@@ -32,7 +37,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                             bottomRight: Radius.circular(45),
                           ),
                           image: DecorationImage(
-                            image: AssetImage('assets/images/broken.jpg'),
+                            image: NetworkImage(widget.equipment.imageUrl),
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -94,44 +99,72 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
 
   Widget _buildActiveTabContent() {
     switch (_activeTabIndex) {
-      case 1: // ABA LOCALIZAÇÃO
+      case 1:
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Endereço do Item",
+            const Text(
+              'Localização',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Row(
               children: [
-                Icon(Icons.location_on, color: Colors.red),
-                SizedBox(width: 10),
+                const Icon(Icons.location_on, color: Colors.red),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    "Prédio IFSP Bragança Paulista. Bloco A, sala A402.",
+                    widget.equipment.location,
                     style: TextStyle(fontSize: 16, color: Colors.grey[800]),
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+            Text(
+              'Reportado em ${widget.equipment.formattedReportDate}',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1A3D9B),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Prioridade ${widget.equipment.priority}',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: widget.equipment.priority.toLowerCase() == 'alta'
+                    ? Colors.red
+                    : widget.equipment.priority.toLowerCase() == 'média'
+                    ? Colors.orange
+                    : Colors.green,
+              ),
+            ),
           ],
         );
-      case 2: // ABA HISTÓRICO
+      case 2:
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Linha do Tempo",
+            const Text(
+              'Histórico',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 15),
-            _buildHistoryItem("02/04 - Reporte criado pelo aluno.", true),
-            _buildHistoryItem("03/04 - TI validou o problema.", false),
-            _buildHistoryItem("05/04 - Peça de reposição solicitada.", false),
+            const SizedBox(height: 15),
+            _buildHistoryItem(
+              '${widget.equipment.formattedReportDate} - Reporte criado.',
+              true,
+            ),
+            _buildHistoryItem(
+              '${widget.equipment.reports} reportes registrados.',
+              false,
+            ),
+            _buildHistoryItem('Aguardando análise da equipe de TI.', false),
           ],
         );
-      default: // ABA DETALHES (Default)
+      default:
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -142,15 +175,10 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                   fontSize: 16,
                   height: 1.6,
                 ),
-                children: [
-                  TextSpan(
-                    text:
-                        "O dispositivo apresenta falhas nas teclas 'Enter' e 'Espaço', impossibilitando o uso para as aulas de programação.",
-                  ),
-                ],
+                children: [TextSpan(text: widget.equipment.details)],
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             _buildStatusInfoBox(),
           ],
         );
@@ -176,18 +204,18 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
 
   Widget _buildStatusInfoBox() {
     return Container(
-      padding: EdgeInsets.all(15),
+      padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: Colors.blue.withOpacity(0.05),
+        color: const Color.fromRGBO(33, 150, 243, 0.05),
         borderRadius: BorderRadius.circular(15),
       ),
       child: Row(
         children: [
-          Icon(Icons.info_outline, color: Color(0xFF1A3D9B)),
-          SizedBox(width: 10),
-          Expanded(
+          const Icon(Icons.info_outline, color: Color(0xFF1A3D9B)),
+          const SizedBox(width: 10),
+          const Expanded(
             child: Text(
-              "O reparo já está agendado pela equipe de TI.",
+              'O reparo já está agendado pela equipe de TI.',
               style: TextStyle(color: Color(0xFF1A3D9B), fontSize: 14),
             ),
           ),
@@ -207,39 +235,55 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Teclado Quebrado",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              widget.equipment.name,
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             Text(
-              "Sala A402 - IFSP Bragança Paulista",
+              widget.equipment.location,
               style: TextStyle(color: Colors.grey[600]),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
-              "Reportado em 02/04/2026",
-              style: TextStyle(
+              'Reportado em ${widget.equipment.formattedReportDate}',
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF1A3D9B),
               ),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Row(
               children: [
-                Icon(Icons.report_problem, color: Colors.orange, size: 20),
-                SizedBox(width: 6),
+                Icon(
+                  Icons.report_problem,
+                  color: widget.equipment.priority.toLowerCase() == 'alta'
+                      ? Colors.red
+                      : widget.equipment.priority.toLowerCase() == 'média'
+                      ? Colors.orange
+                      : Colors.green,
+                  size: 20,
+                ),
+                const SizedBox(width: 6),
                 Text(
-                  "Prioridade alta",
+                  'Prioridade ${widget.equipment.priority.toLowerCase()}',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.orange,
+                    color: widget.equipment.priority.toLowerCase() == 'alta'
+                        ? Colors.red
+                        : widget.equipment.priority.toLowerCase() == 'média'
+                        ? Colors.orange
+                        : Colors.green,
                   ),
                 ),
-                Spacer(),
-                Icon(Icons.people_alt_outlined, color: Colors.grey, size: 18),
-                SizedBox(width: 4),
+                const Spacer(),
+                const Icon(
+                  Icons.people_alt_outlined,
+                  color: Colors.grey,
+                  size: 18,
+                ),
+                const SizedBox(width: 4),
                 Text(
-                  "5 pessoas",
+                  '${widget.equipment.reports} reportes',
                   style: TextStyle(color: Colors.grey[700], fontSize: 13),
                 ),
               ],

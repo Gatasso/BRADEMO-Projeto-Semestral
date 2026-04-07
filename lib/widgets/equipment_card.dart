@@ -37,10 +37,10 @@ class EquipmentCard extends StatelessWidget {
               width: double.infinity,
               height: height,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
+                gradient: const LinearGradient(
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
-                  colors: [Colors.black.withOpacity(0.6), Colors.transparent],
+                  colors: [Color.fromRGBO(0, 0, 0, 0.6), Colors.transparent],
                 ),
               ),
             ),

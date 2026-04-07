@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../models/equipment.dart';
 import '../widgets/equipment_card.dart';
+import 'details_screen.dart';
 
 /// Tela inicial: cadastro de equipamentos defeituosos nas salas do IF.
 class HomeScreen extends StatelessWidget {
@@ -10,6 +12,46 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+
+    final featuredEquipment = Equipment(
+      name: 'Projetor Quebrado',
+      room: 'Sala B101',
+      campus: 'IFSP Bragança Paulista',
+      reportDate: DateTime(2026, 4, 6),
+      priority: 'Alta',
+      reports: 5,
+      details:
+          'O projetor não liga de forma consistente e a imagem fica com falhas, impactando as aulas de apresentação.',
+      imageUrl:
+          'https://images.pexels.com/photos/31261076/pexels-photo-31261076.jpeg',
+    );
+
+    final otherEquipments = [
+      Equipment(
+        name: 'Computador com Problema',
+        room: 'Sala A402',
+        campus: 'IFSP Bragança Paulista',
+        reportDate: DateTime(2026, 4, 4),
+        priority: 'Média',
+        reports: 3,
+        details:
+            'O computador trava frequentemente e apresenta lentidão no carregamento de programas.',
+        imageUrl:
+            'https://images.pexels.com/photos/3747481/pexels-photo-3747482.jpeg',
+      ),
+      Equipment(
+        name: 'Ventilador Quebrado',
+        room: 'Sala C203',
+        campus: 'IFSP Bragança Paulista',
+        reportDate: DateTime(2026, 4, 5),
+        priority: 'Baixa',
+        reports: 1,
+        details:
+            'O ventilador não gira corretamente e faz barulho alto ao ser ligado.',
+        imageUrl:
+            'https://images.pexels.com/photos/42220/air-blade-blowing-chrome-42220.jpeg',
+      ),
+    ];
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -58,13 +100,20 @@ class HomeScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     EquipmentCard(
-                      imageUrl:
-                          'https://images.pexels.com/photos/31261076/pexels-photo-31261076.jpeg',
-                      title: 'Projetor\nQuebrado',
+                      imageUrl: featuredEquipment.imageUrl,
+                      title: featuredEquipment.name,
                       height: 220,
                       fontSize: 18,
                       textPadding: const EdgeInsets.only(bottom: 16, left: 16),
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                ItemDetailScreen(equipment: featuredEquipment),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -89,19 +138,35 @@ class HomeScreen extends StatelessWidget {
                       children: [
                         Expanded(
                           child: EquipmentCard(
-                            imageUrl:
-                                'https://images.pexels.com/photos/3747481/pexels-photo-3747482.jpeg',
-                            title: 'Computador\ncom Problema',
-                            onTap: () {},
+                            imageUrl: otherEquipments[0].imageUrl,
+                            title: otherEquipments[0].name,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ItemDetailScreen(
+                                    equipment: otherEquipments[0],
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: EquipmentCard(
-                            imageUrl:
-                                'https://images.pexels.com/photos/42220/air-blade-blowing-chrome-42220.jpeg',
-                            title: 'Ventilador\nQuebrado',
-                            onTap: () {},
+                            imageUrl: otherEquipments[1].imageUrl,
+                            title: otherEquipments[1].name,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ItemDetailScreen(
+                                    equipment: otherEquipments[1],
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ),
                       ],
