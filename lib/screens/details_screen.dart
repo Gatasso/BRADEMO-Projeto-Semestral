@@ -43,7 +43,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                         ),
                       ),
                       Positioned(
-                        top: 50,
+                        top: 30,
                         right: 20,
                         child: CircleAvatar(
                           backgroundColor: Colors.white,
@@ -56,6 +56,20 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                             ),
                             onPressed: () =>
                                 setState(() => isUrgent = !isUrgent),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 30,
+                        left: 20,
+                        child: CircleAvatar(
+                          backgroundColor: Colors.white,
+                          child: IconButton(
+                            icon: const Icon(
+                              Icons.arrow_back,
+                              color: Colors.black,
+                            ),
+                            onPressed: () => Navigator.pop(context),
                           ),
                         ),
                       ),
