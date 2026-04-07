@@ -190,6 +190,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                   colors: [
+                    // ignore: deprecated_member_use
                     Colors.black.withOpacity(0.6),
                     Colors.transparent,
                   ],
@@ -240,6 +241,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                   colors: [
+                    // ignore: deprecated_member_use
                     Colors.black.withOpacity(0.6),
                     Colors.transparent,
                   ],
