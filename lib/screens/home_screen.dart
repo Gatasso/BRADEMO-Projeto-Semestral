@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/equipment_card.dart';
 
 /// Tela inicial: cadastro de equipamentos defeituosos nas salas do IF.
 class HomeScreen extends StatelessWidget {
@@ -56,9 +57,13 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    _buildLargeCard(
-                      'https://images.pexels.com/photos/31261076/pexels-photo-31261076.jpeg',
-                      'Projetor\nQuebrado',
+                    EquipmentCard(
+                      imageUrl:
+                          'https://images.pexels.com/photos/31261076/pexels-photo-31261076.jpeg',
+                      title: 'Projetor\nQuebrado',
+                      height: 220,
+                      fontSize: 18,
+                      textPadding: const EdgeInsets.only(bottom: 16, left: 16),
                       onTap: () {},
                     ),
                   ],
@@ -83,17 +88,19 @@ class HomeScreen extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: _buildMediumCard(
-                            'https://images.pexels.com/photos/3747481/pexels-photo-3747481.jpeg',
-                            'Computador\ncom Problema',
+                          child: EquipmentCard(
+                            imageUrl:
+                                'https://images.pexels.com/photos/3747481/pexels-photo-3747482.jpeg',
+                            title: 'Computador\ncom Problema',
                             onTap: () {},
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: _buildMediumCard(
-                            'https://images.pexels.com/photos/42220/air-blade-blowing-chrome-42220.jpeg',
-                            'Ventilador\nQuebrado',
+                          child: EquipmentCard(
+                            imageUrl:
+                                'https://images.pexels.com/photos/42220/air-blade-blowing-chrome-42220.jpeg',
+                            title: 'Ventilador\nQuebrado',
                             onTap: () {},
                           ),
                         ),
@@ -124,106 +131,6 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 20),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLargeCard(
-    String imageUrl,
-    String title, {
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Stack(
-          children: [
-            Image.network(
-              imageUrl,
-              width: double.infinity,
-              height: 220,
-              fit: BoxFit.cover,
-            ),
-            Container(
-              width: double.infinity,
-              height: 220,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [
-                    Colors.black.withOpacity(0.6),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 16,
-              left: 16,
-              child: Text(
-                title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  height: 1.2,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMediumCard(
-    String imageUrl,
-    String title, {
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Stack(
-          children: [
-            Image.network(
-              imageUrl,
-              width: double.infinity,
-              height: 160,
-              fit: BoxFit.cover,
-            ),
-            Container(
-              width: double.infinity,
-              height: 160,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [
-                    Colors.black.withOpacity(0.6),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 12,
-              left: 12,
-              child: Text(
-                title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  height: 1.2,
-                ),
-              ),
-            ),
-          ],
         ),
       ),
     );
