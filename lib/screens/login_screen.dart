@@ -14,13 +14,12 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _prontuarioController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
 
-  static const Color _ifGreen = Color(0xFF1B5E20);
-
   Future<void> _login() async {
     final prontuario = _prontuarioController.text;
     final senha = _senhaController.text;
 
     final isValid = await DatabaseService.validateLogin(prontuario, senha);
+    if (!mounted) return;
     if (isValid) {
       Navigator.pushReplacement(
         context,
@@ -35,16 +34,32 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: _ifGreen,
-      body: Center(
-        child: SingleChildScrollView(
-          child: LoginForm(
-            prontuarioController: _prontuarioController,
-            senhaController: _senhaController,
-            onLoginPressed: _login,
-          ),
-        ),
+      backgroundColor: theme.colorScheme.primary,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final horizontalPadding = constraints.maxWidth > 700 ? 40.0 : 24.0;
+          final maxFormWidth = constraints.maxWidth > 600
+              ? 520.0
+              : constraints.maxWidth - horizontalPadding * 2;
+          return Center(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(
+                horizontal: horizontalPadding,
+                vertical: 24,
+              ),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxFormWidth),
+                child: LoginForm(
+                  prontuarioController: _prontuarioController,
+                  senhaController: _senhaController,
+                  onLoginPressed: _login,
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

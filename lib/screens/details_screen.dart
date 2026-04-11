@@ -17,101 +17,213 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Container(
-                        height: 350,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.only(
-                            bottomLeft: Radius.circular(45),
-                            bottomRight: Radius.circular(45),
-                          ),
-                          image: DecorationImage(
-                            image: AssetImage(widget.equipment.imageUrl),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        top: 30,
-                        right: 20,
-                        child: CircleAvatar(
-                          backgroundColor: Colors.white,
-                          child: IconButton(
-                            icon: Icon(
-                              isUrgent
-                                  ? Icons.warning
-                                  : Icons.warning_amber_rounded,
-                              color: isUrgent ? Colors.red : Colors.grey,
-                            ),
-                            onPressed: () =>
-                                setState(() => isUrgent = !isUrgent),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        top: 30,
-                        left: 20,
-                        child: CircleAvatar(
-                          backgroundColor: Colors.white,
-                          child: IconButton(
-                            icon: const Icon(
-                              Icons.arrow_back,
-                              color: Colors.black,
-                            ),
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: -70,
-                        left: 20,
-                        right: 20,
-                        child: _buildInfoCard(),
-                      ),
-                    ],
-                  ),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth > 900;
+          final imageHeight = isWide ? 420.0 : 350.0;
+          final horizontalPadding = isWide ? 40.0 : 25.0;
+          final contentPadding = EdgeInsets.symmetric(
+            horizontal: horizontalPadding,
+          );
 
-                  SizedBox(height: 90),
-
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 25),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          if (!isWide) {
+            return Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
                       children: [
-                        _buildTabItem("Detalhes", 0),
-                        _buildTabItem("Localização", 1),
-                        _buildTabItem("Histórico", 2),
+                        Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Container(
+                              height: imageHeight,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                borderRadius: const BorderRadius.only(
+                                  bottomLeft: Radius.circular(45),
+                                  bottomRight: Radius.circular(45),
+                                ),
+                                image: DecorationImage(
+                                  image: AssetImage(widget.equipment.imageUrl),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              top: 30,
+                              right: 20,
+                              child: CircleAvatar(
+                                backgroundColor: Colors.white,
+                                child: IconButton(
+                                  icon: Icon(
+                                    isUrgent
+                                        ? Icons.warning
+                                        : Icons.warning_amber_rounded,
+                                    color: isUrgent ? Colors.red : Colors.grey,
+                                  ),
+                                  onPressed: () =>
+                                      setState(() => isUrgent = !isUrgent),
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              top: 30,
+                              left: 20,
+                              child: CircleAvatar(
+                                backgroundColor: Colors.white,
+                                child: IconButton(
+                                  icon: const Icon(
+                                    Icons.arrow_back,
+                                    color: Colors.black,
+                                  ),
+                                  onPressed: () => Navigator.pop(context),
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              bottom: -70,
+                              left: 20,
+                              right: 20,
+                              child: _buildInfoCard(context),
+                            ),
+                          ],
+                        ),
+
+                        SizedBox(height: 90),
+                        Padding(
+                          padding: contentPadding,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _buildTabItem(context, "Detalhes", 0),
+                              _buildTabItem(context, "Localização", 1),
+                              _buildTabItem(context, "Histórico", 2),
+                            ],
+                          ),
+                        ),
+
+                        Padding(
+                          padding: const EdgeInsets.all(25.0),
+                          child: _buildActiveTabContent(context),
+                        ),
                       ],
                     ),
                   ),
+                ),
 
-                  Padding(
-                    padding: const EdgeInsets.all(25.0),
-                    child: _buildActiveTabContent(),
+                _buildActionButton(context),
+              ],
+            );
+          }
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 5,
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Container(
+                            height: imageHeight,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              borderRadius: const BorderRadius.only(
+                                bottomLeft: Radius.circular(45),
+                                bottomRight: Radius.circular(45),
+                              ),
+                              image: DecorationImage(
+                                image: AssetImage(widget.equipment.imageUrl),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 30,
+                            right: 20,
+                            child: CircleAvatar(
+                              backgroundColor: Colors.white,
+                              child: IconButton(
+                                icon: Icon(
+                                  isUrgent
+                                      ? Icons.warning
+                                      : Icons.warning_amber_rounded,
+                                  color: isUrgent ? Colors.red : Colors.grey,
+                                ),
+                                onPressed: () =>
+                                    setState(() => isUrgent = !isUrgent),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 30,
+                            left: 20,
+                            child: CircleAvatar(
+                              backgroundColor: Colors.white,
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.arrow_back,
+                                  color: Colors.black,
+                                ),
+                                onPressed: () => Navigator.pop(context),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: -70,
+                            left: 20,
+                            right: 20,
+                            child: _buildInfoCard(context),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 40),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
-
-          _buildActionButton(context),
-        ],
+              Expanded(
+                flex: 5,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: horizontalPadding,
+                    vertical: 30,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _buildTabItem(context, "Detalhes", 0),
+                          _buildTabItem(context, "Localização", 1),
+                          _buildTabItem(context, "Histórico", 2),
+                        ],
+                      ),
+                      const SizedBox(height: 25),
+                      Expanded(child: _buildActiveTabContent(context)),
+                      _buildActionButton(context),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildActiveTabContent() {
+  Widget _buildActiveTabContent(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
     switch (_activeTabIndex) {
       case 1:
         return Column(
@@ -137,10 +249,10 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
             const SizedBox(height: 16),
             Text(
               'Reportado em ${widget.equipment.formattedReportDate}',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF1A3D9B),
+                color: primaryColor,
               ),
             ),
             const SizedBox(height: 10),
@@ -168,14 +280,20 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
             ),
             const SizedBox(height: 15),
             _buildHistoryItem(
+              context,
               '${widget.equipment.formattedReportDate} - Reporte criado.',
               true,
             ),
             _buildHistoryItem(
+              context,
               '${widget.equipment.reports} reportes registrados.',
               false,
             ),
-            _buildHistoryItem('Aguardando análise da equipe de TI.', false),
+            _buildHistoryItem(
+              context,
+              'Aguardando análise da equipe de TI.',
+              false,
+            ),
           ],
         );
       default:
@@ -193,20 +311,21 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            _buildStatusInfoBox(),
+            _buildStatusInfoBox(context),
           ],
         );
     }
   }
 
-  Widget _buildHistoryItem(String text, bool isFirst) {
+  Widget _buildHistoryItem(BuildContext context, String text, bool isFirst) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         children: [
           Icon(
             Icons.check_circle,
-            color: isFirst ? Color(0xFF1A3D9B) : Colors.grey,
+            color: isFirst ? primaryColor : Colors.grey,
             size: 20,
           ),
           SizedBox(width: 10),
@@ -216,21 +335,22 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     );
   }
 
-  Widget _buildStatusInfoBox() {
+  Widget _buildStatusInfoBox(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: const Color.fromRGBO(33, 150, 243, 0.05),
+        color: theme.colorScheme.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(15),
       ),
       child: Row(
         children: [
-          const Icon(Icons.info_outline, color: Color(0xFF1A3D9B)),
+          Icon(Icons.info_outline, color: theme.colorScheme.primary),
           const SizedBox(width: 10),
-          const Expanded(
+          Expanded(
             child: Text(
               'O reparo já está agendado pela equipe de TI.',
-              style: TextStyle(color: Color(0xFF1A3D9B), fontSize: 14),
+              style: TextStyle(color: theme.colorScheme.primary, fontSize: 14),
             ),
           ),
         ],
@@ -238,7 +358,8 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     );
   }
 
-  Widget _buildInfoCard() {
+  Widget _buildInfoCard(BuildContext context) {
+    final theme = Theme.of(context);
     return Card(
       elevation: 8,
       shadowColor: Colors.black26,
@@ -259,10 +380,10 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
             const SizedBox(height: 12),
             Text(
               'Reportado em ${widget.equipment.formattedReportDate}',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF1A3D9B),
+                color: theme.colorScheme.primary,
               ),
             ),
             const SizedBox(height: 12),
@@ -274,7 +395,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                       ? Colors.red
                       : widget.equipment.priority.toLowerCase() == 'média'
                       ? Colors.orange
-                      : Colors.green,
+                      : theme.colorScheme.secondary,
                   size: 20,
                 ),
                 const SizedBox(width: 6),
@@ -286,7 +407,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                         ? Colors.red
                         : widget.equipment.priority.toLowerCase() == 'média'
                         ? Colors.orange
-                        : Colors.green,
+                        : theme.colorScheme.secondary,
                   ),
                 ),
                 const Spacer(),
@@ -308,7 +429,8 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     );
   }
 
-  Widget _buildTabItem(String title, int index) {
+  Widget _buildTabItem(BuildContext context, String title, int index) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
     bool active = _activeTabIndex == index;
     return GestureDetector(
       onTap: () => setState(() => _activeTabIndex = index),
@@ -319,7 +441,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: active ? FontWeight.bold : FontWeight.w500,
-              color: active ? Color(0xFF1A3D9B) : Colors.grey[400],
+              color: active ? primaryColor : Colors.grey[400],
             ),
           ),
           if (active)
@@ -328,7 +450,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
               height: 3,
               width: 30,
               decoration: BoxDecoration(
-                color: Color(0xFF1A3D9B),
+                color: primaryColor,
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
@@ -344,15 +466,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
         width: double.infinity,
         height: 60,
         child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Color(0xFF1A3D9B),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
-            ),
-          ),
           onPressed: () => _showSoonDialog(context),
-          child: Text(
-            "Acompanhar Chamado",
+          child: const Text(
+            'Acompanhar Chamado',
             style: TextStyle(
               color: Colors.white,
               fontSize: 18,

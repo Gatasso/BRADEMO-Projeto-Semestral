@@ -15,8 +15,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 2; // Home é o índice padrão
 
-  static const Color _ifGreen = Color(0xFF1B5E20);
-
   List<Equipment> _equipments = [];
 
   @override
@@ -34,7 +32,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
 
     if (_equipments.isEmpty) {
       return Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -44,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final otherEquipments = _equipments.sublist(1);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -52,135 +51,200 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 20),
-            child: IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.search, color: _ifGreen),
+            child: Container(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary,
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                onPressed: () {},
+                icon: const Icon(Icons.search, color: Colors.white),
+              ),
             ),
           ),
         ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Bem-vindo!',
-                      style: textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: _ifGreen,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Cadastre aqui os equipamentos com defeitos',
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final horizontalPadding = constraints.maxWidth > 900 ? 40.0 : 20.0;
+            final featuredHeight = constraints.maxWidth > 900 ? 280.0 : 220.0;
+            final otherHeight = constraints.maxWidth > 900 ? 220.0 : 160.0;
+            final cardSpacing = constraints.maxWidth > 900 ? 16.0 : 12.0;
+            final isWide = constraints.maxWidth > 900;
 
-              // Projetor Quebrado - Card grande
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+            return SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      featuredEquipment.name,
-                      style: textTheme.labelMedium?.copyWith(
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    EquipmentCard(
-                      imageUrl: featuredEquipment.imageUrl,
-                      title: featuredEquipment.name,
-                      height: 220,
-                      fontSize: 18,
-                      textPadding: const EdgeInsets.only(bottom: 16, left: 16),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                ItemDetailScreen(equipment: featuredEquipment),
+                    // Header
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 12, 0, 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Bem-vindo!',
+                            style: textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.primary,
+                            ),
                           ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 28),
-
-              // Dois cards lado a lado
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Outros Equipamentos',
-                      style: textTheme.labelMedium?.copyWith(
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.w500,
+                          const SizedBox(height: 4),
+                          Text(
+                            'Cadastre aqui os equipamentos com defeitos',
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: EquipmentCard(
-                            imageUrl: otherEquipments[0].imageUrl,
-                            title: otherEquipments[0].name,
+                    const SizedBox(height: 16),
+
+                    // Projetor Quebrado - Card grande
+                    Padding(
+                      padding: EdgeInsets.zero,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            featuredEquipment.name,
+                            style: textTheme.labelMedium?.copyWith(
+                              color: Colors.grey[600],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          EquipmentCard(
+                            imageUrl: featuredEquipment.imageUrl,
+                            title: featuredEquipment.name,
+                            height: featuredHeight,
+                            fontSize: 18,
+                            textPadding: EdgeInsets.only(bottom: 16, left: 16),
                             onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => ItemDetailScreen(
-                                    equipment: otherEquipments[0],
+                                    equipment: featuredEquipment,
                                   ),
                                 ),
                               );
                             },
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: EquipmentCard(
-                            imageUrl: otherEquipments[1].imageUrl,
-                            title: otherEquipments[1].name,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ItemDetailScreen(
-                                    equipment: otherEquipments[1],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                    const SizedBox(height: 28),
+
+                    // Dois cards lado a lado ou empilhados
+                    Padding(
+                      padding: EdgeInsets.zero,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Outros Equipamentos',
+                            style: textTheme.labelMedium?.copyWith(
+                              color: Colors.grey[600],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          isWide
+                              ? Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: EquipmentCard(
+                                        imageUrl: otherEquipments[0].imageUrl,
+                                        title: otherEquipments[0].name,
+                                        height: otherHeight,
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  ItemDetailScreen(
+                                                    equipment:
+                                                        otherEquipments[0],
+                                                  ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    SizedBox(width: cardSpacing),
+                                    Expanded(
+                                      child: EquipmentCard(
+                                        imageUrl: otherEquipments[1].imageUrl,
+                                        title: otherEquipments[1].name,
+                                        height: otherHeight,
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  ItemDetailScreen(
+                                                    equipment:
+                                                        otherEquipments[1],
+                                                  ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : Column(
+                                  children: [
+                                    EquipmentCard(
+                                      imageUrl: otherEquipments[0].imageUrl,
+                                      title: otherEquipments[0].name,
+                                      height: otherHeight,
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                ItemDetailScreen(
+                                                  equipment: otherEquipments[0],
+                                                ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    const SizedBox(height: 12),
+                                    EquipmentCard(
+                                      imageUrl: otherEquipments[1].imageUrl,
+                                      title: otherEquipments[1].name,
+                                      height: otherHeight,
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                ItemDetailScreen(
+                                                  equipment: otherEquipments[1],
+                                                ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 28),
                   ],
                 ),
               ),
-              const SizedBox(height: 28),
-            ],
-          ),
+            );
+          },
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -191,7 +255,7 @@ class _HomeScreenState extends State<HomeScreen> {
           });
         },
         type: BottomNavigationBarType.fixed,
-        backgroundColor: _ifGreen,
+        backgroundColor: theme.colorScheme.primary,
         selectedItemColor: Colors.white,
         unselectedItemColor: Colors.white70,
         items: const [
@@ -215,7 +279,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onPressed: () {
           // Ação para adicionar equipamento
         },
-        backgroundColor: _ifGreen,
+        backgroundColor: theme.colorScheme.primary,
         foregroundColor: Colors.white,
         child: const Icon(Icons.add),
       ),
