@@ -27,7 +27,7 @@ class EquipmentCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         child: Stack(
           children: [
-            Image.network(
+            Image.asset(
               imageUrl,
               width: double.infinity,
               height: height,

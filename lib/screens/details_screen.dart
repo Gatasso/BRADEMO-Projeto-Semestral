@@ -37,7 +37,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                             bottomRight: Radius.circular(45),
                           ),
                           image: DecorationImage(
-                            image: NetworkImage(widget.equipment.imageUrl),
+                            image: AssetImage(widget.equipment.imageUrl),
                             fit: BoxFit.cover,
                           ),
                         ),

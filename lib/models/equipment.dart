@@ -19,6 +19,19 @@ class Equipment {
   final String details;
   final String imageUrl;
 
+  factory Equipment.fromJson(Map<String, dynamic> json) {
+    return Equipment(
+      name: json['name'],
+      room: json['room'],
+      campus: json['campus'],
+      reportDate: DateTime.parse(json['reportDate']),
+      priority: json['priority'],
+      reports: json['reports'],
+      details: json['details'],
+      imageUrl: json['imageUrl'],
+    );
+  }
+
   String get formattedReportDate {
     final day = reportDate.day.toString().padLeft(2, '0');
     final month = reportDate.month.toString().padLeft(2, '0');

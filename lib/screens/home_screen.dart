@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/equipment.dart';
 import '../widgets/equipment_card.dart';
+import '../services/database_service.dart';
 import 'details_screen.dart';
 
 /// Tela inicial: cadastro de equipamentos defeituosos nas salas do IF.
@@ -16,49 +17,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
   static const Color _ifGreen = Color(0xFF1B5E20);
 
+  List<Equipment> _equipments = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEquipments();
+  }
+
+  Future<void> _loadEquipments() async {
+    final equipments = await DatabaseService.loadEquipments();
+    setState(() {
+      _equipments = equipments;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    final featuredEquipment = Equipment(
-      name: 'Projetor Quebrado',
-      room: 'Sala B101',
-      campus: 'IFSP Bragança Paulista',
-      reportDate: DateTime(2026, 4, 6),
-      priority: 'Alta',
-      reports: 5,
-      details:
-          'O projetor não liga de forma consistente e a imagem fica com falhas, impactando as aulas de apresentação.',
-      imageUrl:
-          'https://images.pexels.com/photos/31261076/pexels-photo-31261076.jpeg',
-    );
+    if (_equipments.isEmpty) {
+      return Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
-    final otherEquipments = [
-      Equipment(
-        name: 'Computador com Problema',
-        room: 'Sala A402',
-        campus: 'IFSP Bragança Paulista',
-        reportDate: DateTime(2026, 4, 4),
-        priority: 'Média',
-        reports: 3,
-        details:
-            'O computador trava frequentemente e apresenta lentidão no carregamento de programas.',
-        imageUrl:
-            'https://images.pexels.com/photos/3747481/pexels-photo-3747482.jpeg',
-      ),
-      Equipment(
-        name: 'Ventilador Quebrado',
-        room: 'Sala C203',
-        campus: 'IFSP Bragança Paulista',
-        reportDate: DateTime(2026, 4, 5),
-        priority: 'Baixa',
-        reports: 1,
-        details:
-            'O ventilador não gira corretamente e faz barulho alto ao ser ligado.',
-        imageUrl:
-            'https://images.pexels.com/photos/42220/air-blade-blowing-chrome-42220.jpeg',
-      ),
-    ];
+    final featuredEquipment = _equipments[0];
+    final otherEquipments = _equipments.sublist(1);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -113,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Projetor Quebrado',
+                      featuredEquipment.name,
                       style: textTheme.labelMedium?.copyWith(
                         color: Colors.grey[600],
                         fontWeight: FontWeight.w500,
@@ -208,9 +191,9 @@ class _HomeScreenState extends State<HomeScreen> {
           });
         },
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: _ifGreen,
-        unselectedItemColor: Colors.grey[400],
+        backgroundColor: _ifGreen,
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.white70,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.error_outline),
@@ -228,99 +211,13 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],
       ),
-    );
-  }
-
-  Widget _buildLargeCard(
-    String imageUrl,
-    String title, {
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Stack(
-          children: [
-            Image.network(
-              imageUrl,
-              width: double.infinity,
-              height: 220,
-              fit: BoxFit.cover,
-            ),
-            Container(
-              width: double.infinity,
-              height: 220,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [Colors.black.withOpacity(0.6), Colors.transparent],
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 16,
-              left: 16,
-              child: Text(
-                title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  height: 1.2,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMediumCard(
-    String imageUrl,
-    String title, {
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Stack(
-          children: [
-            Image.network(
-              imageUrl,
-              width: double.infinity,
-              height: 160,
-              fit: BoxFit.cover,
-            ),
-            Container(
-              width: double.infinity,
-              height: 160,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [Colors.black.withOpacity(0.6), Colors.transparent],
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 12,
-              left: 12,
-              child: Text(
-                title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  height: 1.2,
-                ),
-              ),
-            ),
-          ],
-        ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Ação para adicionar equipamento
+        },
+        backgroundColor: _ifGreen,
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.add),
       ),
     );
   }
