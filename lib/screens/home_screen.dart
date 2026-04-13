@@ -71,7 +71,6 @@ class _HomeScreenState extends State<HomeScreen> {
             final featuredHeight = constraints.maxWidth > 900 ? 280.0 : 220.0;
             final otherHeight = constraints.maxWidth > 900 ? 220.0 : 160.0;
             final cardSpacing = constraints.maxWidth > 900 ? 16.0 : 12.0;
-            final isWide = constraints.maxWidth > 900;
 
             return SingleChildScrollView(
               child: Padding(
@@ -154,88 +153,46 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          isWide
-                              ? Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      child: EquipmentCard(
-                                        imageUrl: otherEquipments[0].imageUrl,
-                                        title: otherEquipments[0].name,
-                                        height: otherHeight,
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  ItemDetailScreen(
-                                                    equipment:
-                                                        otherEquipments[0],
-                                                  ),
-                                            ),
-                                          );
-                                        },
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: EquipmentCard(
+                                  imageUrl: otherEquipments[0].imageUrl,
+                                  title: otherEquipments[0].name,
+                                  height: otherHeight,
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ItemDetailScreen(
+                                          equipment: otherEquipments[0],
+                                        ),
                                       ),
-                                    ),
-                                    SizedBox(width: cardSpacing),
-                                    Expanded(
-                                      child: EquipmentCard(
-                                        imageUrl: otherEquipments[1].imageUrl,
-                                        title: otherEquipments[1].name,
-                                        height: otherHeight,
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  ItemDetailScreen(
-                                                    equipment:
-                                                        otherEquipments[1],
-                                                  ),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              : Column(
-                                  children: [
-                                    EquipmentCard(
-                                      imageUrl: otherEquipments[0].imageUrl,
-                                      title: otherEquipments[0].name,
-                                      height: otherHeight,
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                ItemDetailScreen(
-                                                  equipment: otherEquipments[0],
-                                                ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                    const SizedBox(height: 12),
-                                    EquipmentCard(
-                                      imageUrl: otherEquipments[1].imageUrl,
-                                      title: otherEquipments[1].name,
-                                      height: otherHeight,
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                ItemDetailScreen(
-                                                  equipment: otherEquipments[1],
-                                                ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ],
+                                    );
+                                  },
                                 ),
+                              ),
+                              SizedBox(width: cardSpacing),
+                              Expanded(
+                                child: EquipmentCard(
+                                  imageUrl: otherEquipments[1].imageUrl,
+                                  title: otherEquipments[1].name,
+                                  height: otherHeight,
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ItemDetailScreen(
+                                          equipment: otherEquipments[1],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
