@@ -1,3 +1,4 @@
+import 'package:brademo_projeto_final/screens/rest_screen.dart';
 import 'package:flutter/material.dart';
 import '../widgets/login_form.dart';
 import '../services/database_service.dart';
@@ -23,7 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (isValid) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        MaterialPageRoute(builder: (context) => const RestScreen()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

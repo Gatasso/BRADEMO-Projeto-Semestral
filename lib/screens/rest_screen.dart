@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../widgets/image_carousel_widget.dart';
+import 'home_screen.dart';
 
 class RestScreen extends StatelessWidget {
   const RestScreen({super.key});
@@ -16,23 +18,25 @@ class RestScreen extends StatelessWidget {
           final bodySize = isWide ? 18.0 : 16.0;
           return Stack(
             children: [
-              Container(
-                color: theme.colorScheme.primary,
-                child: Center(
-                  child: Image.asset(
-                    'assets/images/IFSP-BRA.png',
-                    width: isWide ? 260 : 200,
-                    height: isWide ? 260 : 200,
-                    fit: BoxFit.contain,
-                  ),
-                ),
+              ImageCarousel(
+                images: [
+                  'assets/images/ifsp_1.jpg',
+                  'assets/images/ifsp_2.jpeg',
+                  'assets/images/ifsp_3.jpeg',
+                ],
+                interval: const Duration(seconds: 3),
               ),
               Container(color: Colors.black.withValues(alpha: 0.3)),
 
-              Column(
-                children: [
-                  const Spacer(),
-                  Container(
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    bottom: 20,
+                    left: 20,
+                    right: 20,
+                  ),
+                  child: Container(
                     margin: EdgeInsets.all(cardMargin),
                     padding: EdgeInsets.all(cardPadding),
                     decoration: BoxDecoration(
@@ -40,6 +44,7 @@ class RestScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           'Sistema de Gestão de Equipamentos',
@@ -47,17 +52,17 @@ class RestScreen extends StatelessWidget {
                           style: TextStyle(
                             fontSize: titleSize,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: theme.colorScheme.onPrimary,
                           ),
                         ),
 
                         SizedBox(height: isWide ? 16 : 10),
 
                         Text(
-                          'Instituto Federal de Educação, Ciência e Tecnologia de São Paulo\n\nGerencie e monitore os equipamentos das salas do IFSP Bragança Paulista.',
+                          'Gerencie e monitore os equipamentos das salas do IFSP Bragança Paulista.\n\nSolicite chamados de reparos e acompanhe em tempo real.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: Colors.white70,
+                            color: Colors.white,
                             fontSize: bodySize,
                           ),
                         ),
@@ -70,18 +75,21 @@ class RestScreen extends StatelessWidget {
                           ),
                           child: IconButton(
                             onPressed: () {
-                              Navigator.pop(context);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const HomeScreen(),
+                                ),
+                              );
                             },
-                            icon: const Icon(Icons.arrow_back),
+                            icon: const Icon(Icons.arrow_forward),
                             color: Colors.white,
                           ),
                         ),
                       ],
                     ),
                   ),
-
-                  SizedBox(height: isWide ? 40 : 30),
-                ],
+                ),
               ),
             ],
           );
