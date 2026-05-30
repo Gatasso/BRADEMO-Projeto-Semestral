@@ -30,6 +30,24 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Future<void> _navigateToDetails(Equipment equipment) async {
+    final index = _equipments.indexOf(equipment);
+    if (index == -1) return;
+
+    final updated = await Navigator.push<Equipment>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ItemDetailScreen(
+          equipment: equipment,
+          index: index,
+        ),
+      ),
+    );
+    if (updated != null && mounted) {
+      _loadEquipments();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -123,16 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             height: featuredHeight,
                             fontSize: 18,
                             textPadding: EdgeInsets.only(bottom: 16, left: 16),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ItemDetailScreen(
-                                    equipment: featuredEquipment,
-                                  ),
-                                ),
-                              );
-                            },
+                            onTap: () => _navigateToDetails(featuredEquipment),
                           ),
                         ],
                       ),
@@ -161,16 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   imageUrl: otherEquipments[0].imageUrl,
                                   title: otherEquipments[0].name,
                                   height: otherHeight,
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => ItemDetailScreen(
-                                          equipment: otherEquipments[0],
-                                        ),
-                                      ),
-                                    );
-                                  },
+                                  onTap: () => _navigateToDetails(otherEquipments[0]),
                                 ),
                               ),
                               SizedBox(width: cardSpacing),
@@ -179,16 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   imageUrl: otherEquipments[1].imageUrl,
                                   title: otherEquipments[1].name,
                                   height: otherHeight,
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => ItemDetailScreen(
-                                          equipment: otherEquipments[1],
-                                        ),
-                                      ),
-                                    );
-                                  },
+                                  onTap: () => _navigateToDetails(otherEquipments[1]),
                                 ),
                               ),
                             ],

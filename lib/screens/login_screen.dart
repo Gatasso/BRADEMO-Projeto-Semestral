@@ -2,7 +2,6 @@ import 'package:brademo_projeto_final/screens/rest_screen.dart';
 import 'package:flutter/material.dart';
 import '../widgets/login_form.dart';
 import '../services/database_service.dart';
-import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
