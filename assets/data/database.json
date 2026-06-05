@@ -2,11 +2,25 @@
   "users": [
     {
       "prontuario": "12345",
-      "senha": "senha123"
+      "senha": "senha123",
+      "name": "João Silva",
+      "email": "joao.silva@ifsp.edu.br",
+      "photoPath": null
     },
     {
       "prontuario": "67890",
-      "senha": "password"
+      "senha": "password",
+      "name": "Maria Oliveira",
+      "email": "maria.oliveira@ifsp.edu.br",
+      "photoPath": null
+    }
+    ,
+    {
+      "prontuario": "00001",
+      "senha": "test1234",
+      "name": "Usuário Teste",
+      "email": "teste@ifsp.edu.br",
+      "photoPath": null
     }
   ],
   "equipments": [

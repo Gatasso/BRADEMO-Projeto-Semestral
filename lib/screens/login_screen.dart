@@ -2,7 +2,6 @@ import 'package:brademo_projeto_final/screens/rest_screen.dart';
 import 'package:flutter/material.dart';
 import '../widgets/login_form.dart';
 import '../services/database_service.dart';
-import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,9 +18,9 @@ class _LoginScreenState extends State<LoginScreen> {
     final prontuario = _prontuarioController.text;
     final senha = _senhaController.text;
 
-    final isValid = await DatabaseService.validateLogin(prontuario, senha);
+    final user = await DatabaseService.validateLogin(prontuario, senha);
     if (!mounted) return;
-    if (isValid) {
+    if (user != null) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const RestScreen()),
