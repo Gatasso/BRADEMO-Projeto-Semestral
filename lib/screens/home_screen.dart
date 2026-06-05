@@ -3,8 +3,6 @@ import '../models/equipment.dart';
 import '../widgets/equipment_card.dart';
 import '../services/database_service.dart';
 import 'details_screen.dart';
-import 'requests_screen.dart';
-import 'profile_screen.dart';
 
 /// Tela inicial: cadastro de equipamentos defeituosos nas salas do IF.
 class HomeScreen extends StatefulWidget {
@@ -209,21 +207,6 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) {
-          // navigate for Perfil (4) and Solicitações (3)
-          if (index == 3) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const RequestsScreen()),
-            );
-            return;
-          }
-          if (index == 4) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ProfileScreen()),
-            );
-            return;
-          }
           setState(() {
             _selectedIndex = index;
           });
@@ -243,8 +226,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
-            icon: Icon(Icons.assignment),
-            label: 'Solicitações',
+            icon: Icon(Icons.settings),
+            label: 'Configuração',
           ),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],
