@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/equipment.dart';
 import '../screens/details_screen.dart';
+import 'equipment_image.dart';
 
 class EquipmentListView extends StatelessWidget {
   final List<Equipment> equipments;
@@ -14,7 +15,7 @@ class EquipmentListView extends StatelessWidget {
       itemBuilder: (context, index) {
         final equipment = equipments[index];
         return ListTile(
-          leading: Image.asset(
+          leading: buildEquipmentImage(
             equipment.imageUrl,
             width: 50,
             height: 50,
@@ -27,7 +28,7 @@ class EquipmentListView extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => ItemDetailScreen(equipment: equipment),
+                builder: (context) => ItemDetailScreen(equipment: equipment, index: index),
               ),
             );
           },

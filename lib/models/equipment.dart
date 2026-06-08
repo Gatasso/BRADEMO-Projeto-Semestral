@@ -1,3 +1,8 @@
+import 'package:hive/hive.dart';
+
+part 'equipment.g.dart';
+
+@HiveType(typeId: 0)
 class Equipment {
   Equipment({
     required this.name,
@@ -10,14 +15,44 @@ class Equipment {
     required this.imageUrl,
   });
 
+  @HiveField(0)
   final String name;
+  @HiveField(1)
   final String room;
+  @HiveField(2)
   final String campus;
+  @HiveField(3)
   final DateTime reportDate;
+  @HiveField(4)
   final String priority;
+  @HiveField(5)
   final int reports;
+  @HiveField(6)
   final String details;
+  @HiveField(7)
   final String imageUrl;
+
+  Equipment copyWith({
+    String? name,
+    String? room,
+    String? campus,
+    DateTime? reportDate,
+    String? priority,
+    int? reports,
+    String? details,
+    String? imageUrl,
+  }) {
+    return Equipment(
+      name: name ?? this.name,
+      room: room ?? this.room,
+      campus: campus ?? this.campus,
+      reportDate: reportDate ?? this.reportDate,
+      priority: priority ?? this.priority,
+      reports: reports ?? this.reports,
+      details: details ?? this.details,
+      imageUrl: imageUrl ?? this.imageUrl,
+    );
+  }
 
   factory Equipment.fromJson(Map<String, dynamic> json) {
     return Equipment(

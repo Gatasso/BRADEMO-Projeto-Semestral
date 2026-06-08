@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'equipment_image.dart';
 
 /// Widget reutilizável para cards de equipamentos.
 class EquipmentCard extends StatelessWidget {
@@ -27,7 +28,7 @@ class EquipmentCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         child: Stack(
           children: [
-            Image.asset(
+            buildEquipmentImage(
               imageUrl,
               width: double.infinity,
               height: height,
