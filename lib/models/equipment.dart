@@ -13,6 +13,7 @@ class Equipment {
     required this.reports,
     required this.details,
     required this.imageUrl,
+    this.codPatrimonio,
   });
 
   @HiveField(0)
@@ -31,6 +32,8 @@ class Equipment {
   final String details;
   @HiveField(7)
   final String imageUrl;
+  @HiveField(8)
+  final String? codPatrimonio;
 
   Equipment copyWith({
     String? name,
@@ -41,6 +44,7 @@ class Equipment {
     int? reports,
     String? details,
     String? imageUrl,
+    String? codPatrimonio,
   }) {
     return Equipment(
       name: name ?? this.name,
@@ -51,6 +55,7 @@ class Equipment {
       reports: reports ?? this.reports,
       details: details ?? this.details,
       imageUrl: imageUrl ?? this.imageUrl,
+      codPatrimonio: codPatrimonio ?? this.codPatrimonio,
     );
   }
 
@@ -64,7 +69,45 @@ class Equipment {
       reports: json['reports'],
       details: json['details'],
       imageUrl: json['imageUrl'],
+      codPatrimonio: json['codPatrimonio'] ?? json['cod_patrimonio'],
     );
+  }
+
+  factory Equipment.fromApi(Map<String, dynamic> json) {
+    final nome = json['nome'] as String;
+    final codPat = json['cod_patrimonio'] as String;
+    String img = 'assets/images/ventilador.jpeg';
+    if (nome.toLowerCase().contains('projetor')) {
+      img = 'assets/images/projetor.jpeg';
+    } else if (nome.toLowerCase().contains('computador')) {
+      img = 'assets/images/computador.png';
+    }
+
+    return Equipment(
+      name: nome,
+      room: json['cod_sala'] ?? 'Sala B101',
+      campus: 'IFSP Bragança Paulista',
+      reportDate: json['criado_em'] != null ? DateTime.parse(json['criado_em']) : DateTime.now(),
+      priority: 'Média',
+      reports: 1,
+      details: json['descricao'] ?? '',
+      imageUrl: img,
+      codPatrimonio: codPat,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'room': room,
+      'campus': campus,
+      'reportDate': reportDate.toIso8601String(),
+      'priority': priority,
+      'reports': reports,
+      'details': details,
+      'imageUrl': imageUrl,
+      'codPatrimonio': codPatrimonio,
+    };
   }
 
   String get formattedReportDate {

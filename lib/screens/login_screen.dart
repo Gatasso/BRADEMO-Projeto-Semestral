@@ -13,22 +13,48 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _prontuarioController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
+  bool _isLoading = false;
 
   Future<void> _login() async {
-    final prontuario = _prontuarioController.text;
-    final senha = _senhaController.text;
+    final prontuario = _prontuarioController.text.trim();
+    final senha = _senhaController.text.trim();
 
-    final isValid = await DatabaseService.validateLogin(prontuario, senha);
-    if (!mounted) return;
-    if (isValid) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const RestScreen()),
-      );
-    } else {
+    if (prontuario.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Prontuário ou senha inválidos')),
+        const SnackBar(content: Text('Por favor, informe seu prontuário')),
       );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final isValid = await DatabaseService.validateLogin(prontuario, senha);
+      if (!mounted) return;
+      if (isValid) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const RestScreen()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Prontuário inválido ou usuário inativo')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao conectar ao servidor: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -55,6 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   prontuarioController: _prontuarioController,
                   senhaController: _senhaController,
                   onLoginPressed: _login,
+                  isLoading: _isLoading,
                 ),
               ),
             ),

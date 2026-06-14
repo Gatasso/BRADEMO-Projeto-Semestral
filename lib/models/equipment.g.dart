@@ -25,13 +25,14 @@ class EquipmentAdapter extends TypeAdapter<Equipment> {
       reports: fields[5] as int,
       details: fields[6] as String,
       imageUrl: fields[7] as String,
+      codPatrimonio: fields[8] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Equipment obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
@@ -47,7 +48,9 @@ class EquipmentAdapter extends TypeAdapter<Equipment> {
       ..writeByte(6)
       ..write(obj.details)
       ..writeByte(7)
-      ..write(obj.imageUrl);
+      ..write(obj.imageUrl)
+      ..writeByte(8)
+      ..write(obj.codPatrimonio);
   }
 
   @override
