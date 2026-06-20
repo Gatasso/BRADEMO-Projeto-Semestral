@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../models/equipment.dart';
+import 'package:hive/hive.dart';
 import '../widgets/equipment_card.dart';
-import '../services/database_service.dart';
 import '../services/solicitacao_service.dart';
 import 'details_screen.dart';
 import '../models/solicitacao_model.dart';
+import 'profile_screen.dart';
 
 /// Tela inicial: cadastro de equipamentos defeituosos nas salas do IF.
 class HomeScreen extends StatefulWidget {
@@ -18,10 +18,12 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 2; // Home é o índice padrão
   List<Solicitacao> _solicitacoes = [];
   bool _isLoading = true;
+  String _userType = 'Aluno';
 
   @override
   void initState() {
     super.initState();
+    _recuperarDadosUsuario();
     _carregarDados();
   }
 
@@ -35,6 +37,97 @@ class _HomeScreenState extends State<HomeScreen> {
       _solicitacoes = dados;
       _isLoading = false;
     });
+  }
+
+  void _recuperarDadosUsuario() {
+    try {
+      final userBox = Hive.box('authBox');
+
+      final userData = userBox.get('currentUser');
+      if (userData != null) {
+        setState(() {
+          _userType = userData['tipo'] ?? 'Aluno';
+
+          _selectedIndex = (_userType == 'Admin' || _userType == 'TI') ? 2 : 2;
+        });
+      }
+    } catch (e) {
+      debugPrint('Erro ao ler usuário do Hive: $e');
+    }
+  }
+
+  List<BottomNavigationBarItem> _getNavbarItems() {
+    if (_userType == 'Admin' || _userType == 'TI') {
+      return const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.error_outline),
+          label: 'Reportar Defeito',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.add_circle_outline),
+          label: 'Cadastrar',
+        ),
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
+      ];
+    }
+
+    // Navbar original completa para usuários normais
+    return const [
+      BottomNavigationBarItem(
+        icon: Icon(Icons.error_outline),
+        label: 'Reportar Defeito',
+      ),
+      BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+      BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
+    ];
+  }
+
+  /// Gerencia a navegação com base nos índices dinâmicos de cada perfil
+  void _onNavbarItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    bool isAdminOrTi = (_userType == 'Admin' || _userType == 'TI');
+
+    // Mapeamento das ações baseadas na estrutura de tamanho da lista
+    if (isAdminOrTi) {
+      switch (index) {
+        case 0: // Reportar Defeito
+          // Navigator.pushNamed(context, '/reportar');
+          break;
+        case 1: // Cadastrar
+          // Navigator.pushNamed(context, '/cadastrar');
+          break;
+        case 2: // Home (Mantém na tela atual)
+          break;
+        case 3: // Perfil redireciona para a ProfileScreen
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ProfileScreen()),
+          );
+          break;
+      }
+    } else {
+      switch (index) {
+        case 0:
+          // Ações comuns...
+          break;
+        case 1:
+          break;
+        case 2: // Home
+          break;
+        case 3: // Configurações
+          break;
+        case 4: // Perfil do usuário comum
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ProfileScreen()),
+          );
+          break;
+      }
+    }
   }
 
   @override
@@ -130,7 +223,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   const SizedBox(height: 6),
                                   EquipmentCard(
-                                    imageUrl: item.imageUrl,
+                                    imageUrl: item.imageUrl.startsWith('http')
+                                        ? item.imageUrl
+                                        : 'assets/images/computador.png',
                                     title:
                                         tituloConcatenado, // Título concatenado aplicado aqui!
                                     height: 180,
@@ -165,22 +260,8 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: theme.colorScheme.primary,
         selectedItemColor: Colors.white,
         unselectedItemColor: Colors.white70,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.error_outline),
-            label: 'Reportar Defeito',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add_circle_outline),
-            label: 'Cadastrar',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Configuração',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
-        ],
+        items: _getNavbarItems(), // Carrega os botões dinamicamente filtrados
+        onTap: _onNavbarItemTapped,
       ),
     );
   }
