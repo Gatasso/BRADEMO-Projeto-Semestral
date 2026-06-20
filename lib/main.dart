@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'models/equipment.dart';
 import 'screens/login_screen.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -9,6 +10,7 @@ void main() async {
   Hive.registerAdapter(EquipmentAdapter());
   await Hive.openBox<Equipment>('equipments');
   await Hive.openBox('authBox');
+  NotificationService.init();
   runApp(const MainApp());
 }
 

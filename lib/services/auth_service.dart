@@ -60,4 +60,25 @@ class AuthService {
     final authBox = Hive.box('authBox');
     await authBox.clear();
   }
+
+  static Future<String> resetPassword(String email) async {
+  final url = Uri.parse('https://arrumaifapiflask.vercel.app/api/login/reset-password');
+
+  try {
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email}),
+    );
+
+    // Decodifica a resposta da sua API Flask
+    final Map<String, dynamic> responseData = jsonDecode(response.body);
+    
+    // Retorna a mensagem enviada pelo back-end (tanto em caso de 200 quanto de erro)
+    return responseData['mensagem'] ?? 'Operação processada.';
+  } catch (e) {
+    print('Erro ao resetar senha: $e');
+    return 'Erro de conexão com o servidor.';
+  }
+}
 }
