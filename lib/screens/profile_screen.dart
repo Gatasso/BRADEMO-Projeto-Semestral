@@ -44,18 +44,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
       }
     } catch (e) {
-      print('Erro ao carregar dados do usuário: $e');
+      debugPrint('Erro ao carregar dados do usuário: $e');
     }
   }
 
   /// Carrega a foto persistida no Hive ao abrir a tela.
   Future<void> _loadProfilePhoto() async {
-    final saved = await DatabaseService.loadProfilePhoto();
-    if (mounted) {
-      setState(() {
-        _selectedImagePath = saved as String?;
-        _loadingPhoto = false;
-      });
+    try {
+      final saved = await DatabaseService.loadProfilePhoto();
+      if (mounted) {
+        setState(() {
+          _selectedImagePath = saved as String?;
+          _loadingPhoto = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _loadingPhoto = false);
+      }
+      debugPrint('Erro ao carregar foto de perfil: $e');
     }
   }
 
@@ -92,15 +99,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  /// Converte a imagem para base64, persiste no Hive e atualiza o estado.
+  /// Converte a imagem para base64, persiste no Hive e atualiza o estado de forma segura.
   Future<void> _saveImage(String path) async {
     try {
       final bytes = await File(path).readAsBytes();
       final base64String = base64Encode(bytes);
 
+      // Salva no banco de dados (Hive)
       await DatabaseService.saveProfilePhoto(base64String);
 
+      // Verifica se o widget ainda está na árvore antes de atualizar o estado ou mostrar SnackBar
       if (!mounted) return;
+
       setState(() => _selectedImagePath = base64String);
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -206,8 +216,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   onSelected: (value) {
                                     if (value == 'gallery') {
                                       _pickImage();
-                                    // ignore: curly_braces_in_flow_control_structures
-                                    } else if (value == 'camera') _takePhoto();
+                                    } else if (value == 'camera') {
+                                      _takePhoto();
+                                    }
                                   },
                                   itemBuilder: (BuildContext context) => [
                                     const PopupMenuItem<String>(
@@ -231,7 +242,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       ),
                                     ),
                                   ],
-                                  child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                                  child: const Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                                  ),
                                 ),
                               ),
                             ],
