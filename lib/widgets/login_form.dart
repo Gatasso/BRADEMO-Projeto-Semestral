@@ -90,8 +90,19 @@ class LoginForm extends StatelessWidget {
             width: double.infinity,
             height: 50,
             child: ElevatedButton(
-              onPressed: onLoginPressed,
-              child: const Text('Entrar'),
+              onPressed: isLoading ? null : onLoginPressed,
+              child: isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Color(0xFF1B5E20),
+                        ),
+                      ),
+                    )
+                  : const Text('Entrar'),
             ),
           ),
         ],

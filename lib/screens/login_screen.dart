@@ -15,6 +15,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _prontuarioController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
+  bool _isLoading = false;
 
   Future<void> _login() async {
     final prontuario = _prontuarioController.text.trim();
