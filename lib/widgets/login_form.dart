@@ -4,12 +4,14 @@ class LoginForm extends StatelessWidget {
   final TextEditingController prontuarioController;
   final TextEditingController senhaController;
   final Future<void> Function() onLoginPressed;
+  final VoidCallback onForgotPasswordPressed;
 
   const LoginForm({
     super.key,
     required this.prontuarioController,
     required this.senhaController,
     required this.onLoginPressed,
+    required this.onForgotPasswordPressed,
   });
 
   @override
@@ -59,8 +61,29 @@ class LoginForm extends StatelessWidget {
               prefixIcon: Icon(Icons.lock, color: primaryColor),
             ),
           ),
+          const SizedBox(height: 10),
+          // BOTÃO ESQUECI MINHA SENHA
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              onPressed: onForgotPasswordPressed,
+              style: TextButton.styleFrom(
+                padding: EdgeInsets
+                    .zero, // Remove o padding padrão do botão para colar no canto
+                minimumSize: const Size(0, 0),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: const Text(
+                'Esqueceu sua senha?',
+                style: TextStyle(
+                  color: Colors.blue, // Ou a cor secundária do seu tema
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
 
           // BOTÃO ENTRAR
           SizedBox(

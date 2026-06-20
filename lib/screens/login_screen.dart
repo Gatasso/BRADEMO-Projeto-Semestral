@@ -1,5 +1,7 @@
 import 'package:brademo_projeto_final/screens/rest_screen.dart';
+import 'package:brademo_projeto_final/services/auth_service.dart';
 import 'package:flutter/material.dart';
+import 'package:brademo_projeto_final/screens/recuperar_senha_screen.dart';
 import '../widgets/login_form.dart';
 import '../services/database_service.dart';
 
@@ -15,19 +17,30 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _senhaController = TextEditingController();
 
   Future<void> _login() async {
-    final prontuario = _prontuarioController.text;
-    final senha = _senhaController.text;
+    final prontuario = _prontuarioController.text.trim();
+    final senha = _senhaController.text.trim();
 
-    final isValid = await DatabaseService.validateLogin(prontuario, senha);
+    if (prontuario.isEmpty || senha.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, preencha todos os campos.')),
+      );
+      return;
+    }
+
+    final isSucess = await AuthService.login(prontuario, senha);
+
     if (!mounted) return;
-    if (isValid) {
+
+    if (isSucess) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const RestScreen()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Prontuário ou senha inválidos')),
+        const SnackBar(
+          content: Text('Prontuário ou senha inválidos ou erro de conexão'),
+        ),
       );
     }
   }
@@ -55,6 +68,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   prontuarioController: _prontuarioController,
                   senhaController: _senhaController,
                   onLoginPressed: _login,
+                  onForgotPasswordPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const RecuperarSenhaScreen(),
+                      ), // Substitua pelo nome correto da sua classe
+                    );
+                  },
                 ),
               ),
             ),

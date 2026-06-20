@@ -8,6 +8,7 @@ void main() async {
   await Hive.initFlutter();
   Hive.registerAdapter(EquipmentAdapter());
   await Hive.openBox<Equipment>('equipments');
+  await Hive.openBox('authBox');
   runApp(const MainApp());
 }
 
