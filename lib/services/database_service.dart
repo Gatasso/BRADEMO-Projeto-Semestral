@@ -3,16 +3,26 @@ import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
 import '../models/equipment.dart';
 import '../models/login.dart';
+import '../models/solicitation.dart';
 
 class DatabaseService {
   static const String _boxName = 'equipments';
+  static const String _profileBoxName = 'profile_box';
+  static const String _solicitationsBoxName = 'solicitations';
 
+  // --- MÉTODOS DE USUÁRIO / LOGIN ---
   static Future<List<User>> loadUsers() async {
     final String response = await rootBundle.loadString('assets/data/database.json');
     final data = json.decode(response);
     return (data['users'] as List).map((user) => User.fromJson(user)).toList();
   }
 
+  static Future<bool> validateLogin(String prontuario, String senha) async {
+    final users = await loadUsers();
+    return users.any((user) => user.prontuario == prontuario && user.senha == senha);
+  }
+
+  // --- MÉTODOS DE EQUIPAMENTOS ---
   static Future<List<Equipment>> loadEquipments() async {
     final box = Hive.box<Equipment>(_boxName);
     if (box.isEmpty) {
@@ -29,8 +39,61 @@ class DatabaseService {
     await box.putAt(index, equipment);
   }
 
-  static Future<bool> validateLogin(String prontuario, String senha) async {
-    final users = await loadUsers();
-    return users.any((user) => user.prontuario == prontuario && user.senha == senha);
+  /// 🟢 CORREÇÃO: Método addEquipment que estava faltando para a CadastroScreen
+  static Future<void> addEquipment(Equipment equipment) async {
+    final box = Hive.box<Equipment>(_boxName);
+    await box.add(equipment);
+  }
+
+  // --- MÉTODOS DE FOTO DE PERFIL ---
+  static Future<void> saveProfilePhoto(String base64String) async {
+    final box = Hive.box(_profileBoxName);
+    await box.put('profile_photo', base64String);
+  }
+
+  static Future<String?> loadProfilePhoto() async {
+    final box = Hive.box(_profileBoxName);
+    return box.get('profile_photo') as String?;
+  }
+
+  // --- MÉTODOS DE SOLICITAÇÕES ---
+  /// 🟢 CORREÇÃO: Método loadSolicitations que estava faltando para a SolicitationsScreen
+  static Future<List<Solicitation>> loadSolicitations() async {
+    final box = Hive.box(_solicitationsBoxName);
+    
+    // Se a caixa estiver vazia no Hive, carrega dados iniciais do arquivo JSON simulado
+    if (box.isEmpty) {
+      try {
+        final String response = await rootBundle.loadString('assets/data/database.json');
+        final data = json.decode(response);
+        if (data['solicitations'] != null) {
+          final initialList = (data['solicitations'] as List)
+              .map((sol) => Solicitation.fromJson(sol))
+              .toList();
+          
+          // Salva cada uma mapeada por ID ou em lista ordenada
+          for (var sol in initialList) {
+            await box.put(sol.id, sol.toJson()); // salvando como mapa para evitar problemas de adapter
+          }
+        }
+      } catch (e) {
+        // Fallback caso não encontre a chave no JSON
+        return [];
+      }
+    }
+
+    // Mapeia de volta os itens salvos na caixa como instâncias de Solicitation
+    final List<Solicitation> list = [];
+    for (var key in box.keys) {
+      final value = box.get(key);
+      if (value is Map) {
+        // Caso esteja salvo como Map (JSON)
+        list.add(Solicitation.fromJson(Map<String, dynamic>.from(value)));
+      } else if (value is Solicitation) {
+        // Caso possua adapter direto configurado futuramente
+        list.add(value);
+      }
+    }
+    return list;
   }
 }
