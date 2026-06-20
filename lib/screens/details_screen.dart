@@ -6,12 +6,14 @@ import 'package:path_provider/path_provider.dart';
 import '../models/equipment.dart';
 import '../widgets/equipment_image.dart';
 import '../services/database_service.dart';
+import '../models/solicitacao_model.dart';
 
 class ItemDetailScreen extends StatefulWidget {
-  final Equipment equipment;
-  final int index;
+  // final Equipment equipment;
+  final Solicitacao solicitacao;
+  // final int index;
 
-  const ItemDetailScreen({super.key, required this.equipment, required this.index});
+  const ItemDetailScreen({super.key, required this.solicitacao});
 
   @override
   State<ItemDetailScreen> createState() => _ItemDetailScreenState();
@@ -21,7 +23,8 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
   late Equipment _currentEquipment;
   bool isUrgent = false;
   bool _isEditing = false;
-  int _activeTabIndex = 0; // 0: Aba Detalhes, 1: Aba Localização, 2: Aba Histórico
+  int _activeTabIndex =
+      0; // 0: Aba Detalhes, 1: Aba Localização, 2: Aba Histórico
 
   late TextEditingController _nameController;
   late TextEditingController _roomController;
@@ -36,7 +39,16 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _currentEquipment = widget.equipment;
+    _currentEquipment = Equipment(
+      name: widget.solicitacao.material,
+      room: widget.solicitacao.codSala,
+      campus: "IFSP",
+      details: widget.solicitacao.defeitoTitulo,
+      priority: widget.solicitacao.status == 'Alta' ? 'Alta' : 'Média',
+      imageUrl: widget.solicitacao.imageUrl,
+      reports: 1,
+      reportDate: widget.solicitacao.criadoEm,
+    );
     _nameController = TextEditingController(text: _currentEquipment.name);
     _roomController = TextEditingController(text: _currentEquipment.room);
     _campusController = TextEditingController(text: _currentEquipment.campus);
@@ -71,15 +83,18 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       try {
         final appDir = await getApplicationDocumentsDirectory();
         final extension = p.extension(_selectedLocalImagePath!);
-        final fileName = 'equipamento_${DateTime.now().millisecondsSinceEpoch}$extension';
+        final fileName =
+            'equipamento_${DateTime.now().millisecondsSinceEpoch}$extension';
         final permanentPath = p.join(appDir.path, fileName);
-        
+
         await File(_selectedLocalImagePath!).copy(permanentPath);
         finalImagePath = permanentPath;
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erro ao salvar imagem permanentemente: $e')),
+            SnackBar(
+              content: Text('Erro ao salvar imagem permanentemente: $e'),
+            ),
           );
         }
       }
@@ -94,7 +109,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       imageUrl: finalImagePath,
     );
 
-    await DatabaseService.updateEquipment(widget.index, updatedEquipment);
+    await DatabaseService.updateEquipment(0, updatedEquipment);
 
     setState(() {
       _currentEquipment = updatedEquipment;
@@ -166,7 +181,10 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.photo_library, color: Color(0xFF1B5E20)),
+                leading: const Icon(
+                  Icons.photo_library,
+                  color: Color(0xFF1B5E20),
+                ),
                 title: const Text('Escolher da Galeria (Armazenamento)'),
                 onTap: () {
                   Navigator.pop(context);
@@ -184,7 +202,8 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final displayImageUrl = _selectedLocalImagePath ?? _currentEquipment.imageUrl;
+    final displayImageUrl =
+        _selectedLocalImagePath ?? _currentEquipment.imageUrl;
 
     return PopScope(
       canPop: false,
@@ -214,7 +233,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                             clipBehavior: Clip.none,
                             children: [
                               GestureDetector(
-                                onTap: _isEditing ? _showImagePickerOptions : null,
+                                onTap: _isEditing
+                                    ? _showImagePickerOptions
+                                    : null,
                                 child: Container(
                                   height: imageHeight,
                                   width: double.infinity,
@@ -224,24 +245,38 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                       bottomRight: Radius.circular(45),
                                     ),
                                     image: DecorationImage(
-                                      image: getEquipmentImageProvider(displayImageUrl),
+                                      image: getEquipmentImageProvider(
+                                        displayImageUrl,
+                                      ),
                                       fit: BoxFit.cover,
                                     ),
                                   ),
                                   child: _isEditing
                                       ? Container(
                                           decoration: BoxDecoration(
-                                            color: Colors.black.withValues(alpha: 0.4),
-                                            borderRadius: const BorderRadius.only(
-                                              bottomLeft: Radius.circular(45),
-                                              bottomRight: Radius.circular(45),
+                                            color: Colors.black.withValues(
+                                              alpha: 0.4,
                                             ),
+                                            borderRadius:
+                                                const BorderRadius.only(
+                                                  bottomLeft: Radius.circular(
+                                                    45,
+                                                  ),
+                                                  bottomRight: Radius.circular(
+                                                    45,
+                                                  ),
+                                                ),
                                           ),
                                           child: const Center(
                                             child: Column(
-                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
                                               children: [
-                                                Icon(Icons.camera_alt, color: Colors.white, size: 50),
+                                                Icon(
+                                                  Icons.camera_alt,
+                                                  color: Colors.white,
+                                                  size: 50,
+                                                ),
                                                 SizedBox(height: 8),
                                                 Text(
                                                   'Alterar Foto',
@@ -269,7 +304,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                         isUrgent
                                             ? Icons.warning
                                             : Icons.warning_amber_rounded,
-                                        color: isUrgent ? Colors.red : Colors.grey,
+                                        color: isUrgent
+                                            ? Colors.red
+                                            : Colors.grey,
                                       ),
                                       onPressed: () =>
                                           setState(() => isUrgent = !isUrgent),
@@ -308,7 +345,10 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                       Icons.arrow_back,
                                       color: Colors.black,
                                     ),
-                                    onPressed: () => Navigator.pop(context, _currentEquipment),
+                                    onPressed: () => Navigator.pop(
+                                      context,
+                                      _currentEquipment,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -320,13 +360,21 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                     ? Card(
                                         elevation: 4,
                                         shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(15)),
+                                          borderRadius: BorderRadius.circular(
+                                            15,
+                                          ),
+                                        ),
                                         child: const Padding(
                                           padding: EdgeInsets.symmetric(
-                                              vertical: 12, horizontal: 20),
+                                            vertical: 12,
+                                            horizontal: 20,
+                                          ),
                                           child: Row(
                                             children: [
-                                              Icon(Icons.edit, color: Color(0xFF1B5E20)),
+                                              Icon(
+                                                Icons.edit,
+                                                color: Color(0xFF1B5E20),
+                                              ),
                                               SizedBox(width: 10),
                                               Text(
                                                 'Modo de Edição Ativo',
@@ -346,17 +394,20 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                           ),
 
                           SizedBox(height: _isEditing ? 40 : 90),
-                          
+
                           if (_isEditing)
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 25.0,
+                              ),
                               child: _buildEditForm(context),
                             )
                           else ...[
                             Padding(
                               padding: contentPadding,
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   _buildTabItem(context, "Detalhes", 0),
                                   _buildTabItem(context, "Localização", 1),
@@ -391,7 +442,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                           clipBehavior: Clip.none,
                           children: [
                             GestureDetector(
-                              onTap: _isEditing ? _showImagePickerOptions : null,
+                              onTap: _isEditing
+                                  ? _showImagePickerOptions
+                                  : null,
                               child: Container(
                                 height: imageHeight,
                                 width: double.infinity,
@@ -401,14 +454,18 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                     bottomRight: Radius.circular(45),
                                   ),
                                   image: DecorationImage(
-                                    image: getEquipmentImageProvider(displayImageUrl),
+                                    image: getEquipmentImageProvider(
+                                      displayImageUrl,
+                                    ),
                                     fit: BoxFit.cover,
                                   ),
                                 ),
                                 child: _isEditing
                                     ? Container(
                                         decoration: BoxDecoration(
-                                          color: Colors.black.withValues(alpha: 0.4),
+                                          color: Colors.black.withValues(
+                                            alpha: 0.4,
+                                          ),
                                           borderRadius: const BorderRadius.only(
                                             bottomLeft: Radius.circular(45),
                                             bottomRight: Radius.circular(45),
@@ -416,9 +473,14 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                         ),
                                         child: const Center(
                                           child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
                                             children: [
-                                              Icon(Icons.camera_alt, color: Colors.white, size: 50),
+                                              Icon(
+                                                Icons.camera_alt,
+                                                color: Colors.white,
+                                                size: 50,
+                                              ),
                                               SizedBox(height: 8),
                                               Text(
                                                 'Alterar Foto',
@@ -446,7 +508,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                       isUrgent
                                           ? Icons.warning
                                           : Icons.warning_amber_rounded,
-                                      color: isUrgent ? Colors.red : Colors.grey,
+                                      color: isUrgent
+                                          ? Colors.red
+                                          : Colors.grey,
                                     ),
                                     onPressed: () =>
                                         setState(() => isUrgent = !isUrgent),
@@ -457,24 +521,24 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                               top: 30,
                               right: _isEditing ? 20 : 75,
                               child: CircleAvatar(
-                                  backgroundColor: Colors.white,
-                                  child: IconButton(
-                                    icon: Icon(
-                                      _isEditing ? Icons.close : Icons.edit,
-                                      color: const Color(0xFF1B5E20),
-                                    ),
-                                    onPressed: () {
-                                      if (_isEditing) {
-                                        _cancelEdit();
-                                      } else {
-                                        setState(() {
-                                          _isEditing = true;
-                                        });
-                                      }
-                                    },
+                                backgroundColor: Colors.white,
+                                child: IconButton(
+                                  icon: Icon(
+                                    _isEditing ? Icons.close : Icons.edit,
+                                    color: const Color(0xFF1B5E20),
                                   ),
+                                  onPressed: () {
+                                    if (_isEditing) {
+                                      _cancelEdit();
+                                    } else {
+                                      setState(() {
+                                        _isEditing = true;
+                                      });
+                                    }
+                                  },
                                 ),
                               ),
+                            ),
                             Positioned(
                               top: 30,
                               left: 20,
@@ -485,7 +549,8 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                     Icons.arrow_back,
                                     color: Colors.black,
                                   ),
-                                  onPressed: () => Navigator.pop(context, _currentEquipment),
+                                  onPressed: () =>
+                                      Navigator.pop(context, _currentEquipment),
                                 ),
                               ),
                             ),
@@ -497,13 +562,19 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                   ? Card(
                                       elevation: 4,
                                       shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(15)),
+                                        borderRadius: BorderRadius.circular(15),
+                                      ),
                                       child: const Padding(
                                         padding: EdgeInsets.symmetric(
-                                            vertical: 12, horizontal: 20),
+                                          vertical: 12,
+                                          horizontal: 20,
+                                        ),
                                         child: Row(
                                           children: [
-                                            Icon(Icons.edit, color: Color(0xFF1B5E20)),
+                                            Icon(
+                                              Icons.edit,
+                                              color: Color(0xFF1B5E20),
+                                            ),
                                             SizedBox(width: 10),
                                             Text(
                                               'Modo de Edição Ativo',
@@ -966,4 +1037,3 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     );
   }
 }
-
