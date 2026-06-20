@@ -7,10 +7,19 @@ import 'services/notification_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
+
+  // Registra o adaptador existente de equipamentos
   Hive.registerAdapter(EquipmentAdapter());
+
+  // Abre todas as caixas necessárias na inicialização do app
   await Hive.openBox<Equipment>('equipments');
   await Hive.openBox('authBox');
   NotificationService.init();
+  await Hive.openBox('profile_box');
+  await Hive.openBox(
+    'solicitations',
+  ); // 🟢 ADICIONADO: Caixa para armazenar as solicitações
+
   runApp(const MainApp());
 }
 
