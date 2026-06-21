@@ -3,9 +3,17 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'models/equipment.dart';
 import 'screens/login_screen.dart';
 import 'services/notification_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    debugPrint(
+      "Aviso: Arquivo .env não encontrado, usando fallbacks configurados.",
+    );
+  }
   await Hive.initFlutter();
 
   // Registra o adaptador existente de equipamentos
@@ -14,11 +22,10 @@ void main() async {
   // Abre todas as caixas necessárias na inicialização do app
   await Hive.openBox<Equipment>('equipments');
   await Hive.openBox('authBox');
-  NotificationService.init();
   await Hive.openBox('profile_box');
-  await Hive.openBox(
-    'solicitations',
-  ); // 🟢 ADICIONADO: Caixa para armazenar as solicitações
+  await Hive.openBox('solicitations');
+
+  NotificationService.init();
 
   runApp(const MainApp());
 }

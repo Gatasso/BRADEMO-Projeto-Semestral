@@ -10,30 +10,28 @@ class AuthService {
   /// Realiza o login na API Flask e salva o ID do usuário no Hive se obtiver sucesso.
   static Future<bool> login(String prontuario, String senha) async {
     final url = Uri.parse('$_baseUrl/api/login/');
-    
+
     try {
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'prontuario': prontuario,
-          'senha': senha,
-        }),
+        body: jsonEncode({'prontuario': prontuario, 'senha': senha}),
       );
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
-        
+
         // Mapeia os dados internos do nó "usuario" vindo do Flask
         final usuarioData = responseData['usuario'];
         final usuario = Usuario.fromJson(usuarioData);
 
         // Abre a caixa do Hive (garanta que foi inicializada no main.dart)
         final authBox = Hive.box('authBox');
-        
+
         // Persiste o ID do usuário e dados que achar necessário
         await authBox.put('usuario_id', usuario.id);
         await authBox.put('usuario_nome', usuario.nome);
+        await authBox.put('usuario_prontuario', usuario.prontuario);
         await authBox.put('usuario_tipo', usuario.tipo);
         await authBox.put('is_logged_in', true);
 
@@ -43,8 +41,9 @@ class AuthService {
         print('Erro no login: ${response.body}');
         return false;
       }
-    } catch (e) {
+    } catch (e, stacktrace) {
       print('Erro de conexão com a API: $e');
+      print(stacktrace);
       return false;
     }
   }
@@ -62,23 +61,25 @@ class AuthService {
   }
 
   static Future<String> resetPassword(String email) async {
-  final url = Uri.parse('https://arrumaifapiflask.vercel.app/api/login/reset-password');
-
-  try {
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': email}),
+    final url = Uri.parse(
+      'https://arrumaifapiflask.vercel.app/api/login/reset-password',
     );
 
-    // Decodifica a resposta da sua API Flask
-    final Map<String, dynamic> responseData = jsonDecode(response.body);
-    
-    // Retorna a mensagem enviada pelo back-end (tanto em caso de 200 quanto de erro)
-    return responseData['mensagem'] ?? 'Operação processada.';
-  } catch (e) {
-    print('Erro ao resetar senha: $e');
-    return 'Erro de conexão com o servidor.';
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      // Decodifica a resposta da sua API Flask
+      final Map<String, dynamic> responseData = jsonDecode(response.body);
+
+      // Retorna a mensagem enviada pelo back-end (tanto em caso de 200 quanto de erro)
+      return responseData['mensagem'] ?? 'Operação processada.';
+    } catch (e) {
+      print('Erro ao resetar senha: $e');
+      return 'Erro de conexão com o servidor.';
+    }
   }
-}
 }

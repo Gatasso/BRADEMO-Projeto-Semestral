@@ -1,7 +1,11 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:hive/hive.dart';
+import '../config/config.dart';
 
 class UserService {
   static const String _boxName = 'currentUser';
+  static final String? _baseUrl = Config.apiUrl;
 
   static Future<void> saveUser({
     required String id,
@@ -21,15 +25,27 @@ class UserService {
   }
 
   static Future<Map<String, dynamic>?> getCurrentUser() async {
-    final box = await Hive.openBox(_boxName);
-    if (box.isEmpty) return null;
-    return {
-      'id': box.get('id'),
-      'prontuario': box.get('prontuario'),
-      'nome': box.get('nome'),
-      'email': box.get('email'),
-      'tipo': box.get('tipo'),
-    };
+    try {
+      final authBox = Hive.box('authBox');
+      if (authBox.get('usuario_id') == null) return null;
+
+      // Monta o mapa esperado pela ProfileScreen com base nas chaves salvas pelo AuthService
+      return {
+        'id': authBox.get('usuario_id'),
+        'nome': authBox.get('usuario_nome'),
+        'prontuario':
+            authBox.get('usuario_prontuario') ??
+            authBox.get('authBox_prontuario_fallback') ??
+            '',
+        'tipo': authBox.get('usuario_tipo'),
+        'email': authBox.get(
+          'usuario_email',
+        ), // Fallback caso a API não mande email estruturado
+      };
+    } catch (e) {
+      print('Erro ao obter usuário local do Hive: $e');
+      return null;
+    }
   }
 
   static Future<String?> getCurrentUserProntuario() async {
@@ -38,7 +54,7 @@ class UserService {
   }
 
   static Future<void> logout() async {
-    final box = await Hive.openBox(_boxName);
-    await box.clear();
+    final authBox = Hive.box('authBox');
+    await authBox.clear();
   }
 }

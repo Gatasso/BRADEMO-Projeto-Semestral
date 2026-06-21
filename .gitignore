@@ -46,3 +46,6 @@ app.*.map.json
 
 # Documentação do sistema
 arrumaIF.pdf
+
+
+.env

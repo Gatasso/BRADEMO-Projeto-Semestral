@@ -6,11 +6,14 @@ import 'package:http/http.dart' as http;
 import '../models/equipment.dart';
 import '../models/login.dart';
 import '../models/solicitation.dart';
+import '../config/config.dart';
 
 class DatabaseService {
   static const String _boxName = 'equipments';
   static const String _profileBoxName = 'profile_box';
   static const String _solicitationsBoxName = 'solicitations';
+
+  static final String? _baseUrl = Config.apiUrl;
 
   // --- MÉTODOS DE USUÁRIO / LOGIN ---
   static Future<List<User>> loadUsers() async {
@@ -91,7 +94,6 @@ class DatabaseService {
     }
   }
 
-  /// 🟢 CORREÇÃO: Método addEquipment que estava faltando para a CadastroScreen
   static Future<void> addEquipment(Equipment equipment) async {
     final box = Hive.box<Equipment>(_boxName);
     await box.add(equipment);
@@ -109,7 +111,6 @@ class DatabaseService {
   }
 
   // --- MÉTODOS DE SOLICITAÇÕES ---
-  /// 🟢 CORREÇÃO: Método loadSolicitations que estava faltando para a SolicitationsScreen
   static Future<List<Solicitation>> loadSolicitations() async {
     final box = Hive.box(_solicitationsBoxName);
 

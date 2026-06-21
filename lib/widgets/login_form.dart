@@ -5,6 +5,7 @@ class LoginForm extends StatelessWidget {
   final TextEditingController senhaController;
   final Future<void> Function() onLoginPressed;
   final VoidCallback onForgotPasswordPressed;
+  final bool isLoading;
 
   const LoginForm({
     super.key,
@@ -12,6 +13,7 @@ class LoginForm extends StatelessWidget {
     required this.senhaController,
     required this.onLoginPressed,
     required this.onForgotPasswordPressed,
+    this.isLoading = false,
   });
 
   @override
