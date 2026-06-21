@@ -68,12 +68,7 @@ class _CadastroScreenState extends State<CadastroScreen> {
 
     setState(() {
       _salas = salasCarregadas;
-      if (_salas.isNotEmpty) _selectedRoom = _salas.first;
-
       _equipamentosPai = equipsCarregados;
-      if (_equipamentosPai.isNotEmpty)
-        _selectedParentEquipment = _equipamentosPai.first;
-
       _isLoadingData = false;
     });
   }
@@ -82,6 +77,8 @@ class _CadastroScreenState extends State<CadastroScreen> {
     setState(() {
       _selectedItemType = label;
       _currentEndpoint = endpoint;
+      _selectedRoom = null;
+      _selectedParentEquipment = null;
       _nomeController.clear();
       _descricaoController.clear();
       _patrimonioController.clear();
@@ -149,6 +146,10 @@ class _CadastroScreenState extends State<CadastroScreen> {
         _descricaoController.clear();
         _patrimonioController.clear();
         _tituloController.clear();
+        setState(() {
+          _selectedRoom = null;
+          _selectedParentEquipment = null;
+        });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -316,7 +317,7 @@ class _CadastroScreenState extends State<CadastroScreen> {
     if (_selectedItemType == 'Equipamento') {
       fields.add(
         _buildDropdownField(
-          'Sala / Localização Vincular',
+          'Selecione a Sala / Localização',
           _selectedRoom,
           _salas,
           (val) {
@@ -346,7 +347,7 @@ class _CadastroScreenState extends State<CadastroScreen> {
     } else if (_selectedItemType == 'Componente') {
       fields.add(
         _buildDropdownField(
-          'Equipamento Pai (Patrimônio)',
+          'Selecione o Equipamento Pai (Patrimônio)',
           _selectedParentEquipment,
           _equipamentosPai,
           (val) {
@@ -386,7 +387,8 @@ class _CadastroScreenState extends State<CadastroScreen> {
       fields.add(
         DropdownButtonFormField<String>(
           value: _tipoLocal,
-          decoration: _getInputDecoration('Tipo de Local', Icons.layers, theme),
+          decoration: _getInputDecoration('', Icons.layers, theme),
+          hint: const Text('Selecione o Tipo de Local'),
           items: const [
             DropdownMenuItem(value: 'Sala', child: Text('Sala')),
             DropdownMenuItem(value: 'Laboratorio', child: Text('Laboratório')),
@@ -410,11 +412,8 @@ class _CadastroScreenState extends State<CadastroScreen> {
       fields.add(
         DropdownButtonFormField<String>(
           value: _categoriaDefeitoSolucao,
-          decoration: _getInputDecoration(
-            'Categoria Aplicável',
-            Icons.category,
-            theme,
-          ),
+          decoration: _getInputDecoration('', Icons.category, theme),
+          hint: const Text('Selecione a Categoria Aplicável'),
           items: const [
             DropdownMenuItem(value: 'Equipamento', child: Text('Equipamento')),
             DropdownMenuItem(value: 'Mobiliário', child: Text('Mobiliário')),
@@ -432,13 +431,10 @@ class _CadastroScreenState extends State<CadastroScreen> {
         controller: _descricaoController,
         maxLines: 4,
         decoration: _getInputDecoration(
-          'Descrição / Detalhes',
+          'Descrição / Detalhes (Opcional)',
           Icons.description,
           theme,
         ),
-        validator: (value) => (value == null || value.isEmpty)
-            ? 'Por favor, insira a descrição'
-            : null,
       ),
     );
 
@@ -447,20 +443,20 @@ class _CadastroScreenState extends State<CadastroScreen> {
 
   Widget _buildTextField(
     TextEditingController controller,
-    String label,
+    String placeholder,
     IconData icon,
     ThemeData theme,
   ) {
     return TextFormField(
       controller: controller,
-      decoration: _getInputDecoration(label, icon, theme),
+      decoration: _getInputDecoration(placeholder, icon, theme),
       validator: (value) =>
           (value == null || value.isEmpty) ? 'Campo obrigatório' : null,
     );
   }
 
   Widget _buildDropdownField(
-    String label,
+    String placeholder,
     String? value,
     List<String> items,
     ValueChanged<String?> onChanged,
@@ -468,7 +464,11 @@ class _CadastroScreenState extends State<CadastroScreen> {
   ) {
     return DropdownButtonFormField<String>(
       value: value,
-      decoration: _getInputDecoration(label, Icons.list, theme),
+      decoration: _getInputDecoration('', Icons.list, theme),
+      hint: Text(
+        placeholder,
+        style: TextStyle(color: theme.colorScheme.primary.withOpacity(0.6)),
+      ),
       items: items
           .map((item) => DropdownMenuItem(value: item, child: Text(item)))
           .toList(),
@@ -478,13 +478,13 @@ class _CadastroScreenState extends State<CadastroScreen> {
   }
 
   InputDecoration _getInputDecoration(
-    String label,
+    String placeholder,
     IconData icon,
     ThemeData theme,
   ) {
     return InputDecoration(
-      labelText: label,
-      labelStyle: TextStyle(color: theme.colorScheme.primary),
+      hintText: placeholder.isNotEmpty ? placeholder : null,
+      hintStyle: TextStyle(color: theme.colorScheme.primary.withOpacity(0.6)),
       filled: true,
       fillColor: const Color(0xFFF1F3F6),
       border: OutlineInputBorder(

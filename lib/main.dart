@@ -24,6 +24,7 @@ void main() async {
   await Hive.openBox('authBox');
   await Hive.openBox('profile_box');
   await Hive.openBox('solicitations');
+  await Hive.openBox('appCacheBox');
 
   NotificationService.init();
 

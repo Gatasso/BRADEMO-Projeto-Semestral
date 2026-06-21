@@ -1,27 +1,21 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:hive/hive.dart';
-import '../models/solicitacao_model.dart';
 import '../config/config.dart';
+import '../models/solicitacao_model.dart';
 
 final String? _baseUrl = Config.apiUrl;
 
 Future<List<Solicitacao>> buscarSolicitacoesUsuario() async {
   final authBox = Hive.box('authBox');
   final String? usuarioId = authBox.get('usuario_id');
-
   if (usuarioId == null) return [];
-
   final url = Uri.parse('$_baseUrl/api/solicitacoes/usuario/$usuarioId');
-
   try {
     final response = await http.get(url);
-
     if (response.statusCode == 200) {
       final List<dynamic> dados = jsonDecode(response.body);
       return dados.map((json) => Solicitacao.fromJson(json)).toList();
-    } else if (response.statusCode == 404) {
-      return [];
     }
     return [];
   } catch (e) {
@@ -30,61 +24,112 @@ Future<List<Solicitacao>> buscarSolicitacoesUsuario() async {
   }
 }
 
-Future<Map<String, dynamic>> criarSolicitacao({
-  required String titulo,
-  required String descricao,
-  required String equipamento,
-  required String sala,
-  required String prioridade,
-  required String solicitanteProntuario,
-}) async {
-  final url = Uri.parse('$_baseUrl/solicitacao');
-  try {
-    final response = await http
-        .post(
-          url,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'titulo': titulo,
-            'descricao': descricao,
-            'equipamento': equipamento,
-            'sala': sala,
-            'prioridade': prioridade,
-            'solicitanteProntuario': solicitanteProntuario,
-            'status': 'Aberta',
-          }),
-        )
-        .timeout(const Duration(seconds: 10));
-
-    if (response.statusCode == 201 || response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Erro ao criar solicitação: ${response.statusCode}');
-    }
-  } catch (e) {
-    throw Exception('Erro ao criar solicitação: $e');
-  }
-}
-
-Future<List<dynamic>> buscarTodasSolicitacoes() async {
-  final url = Uri.parse('$_baseUrl/solicitacao');
-  try {
-    final response = await http.get(
-      url,
-      headers: {'Content-Type': 'application/json'},
-    );
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data is Map && data.containsKey('solicitacoes')) {
-        return data['solicitacoes'];
+class SolicitacaoService {
+  static Future<List<Map<String, dynamic>>> buscarEquipamentosPorSala(
+    String codSala,
+  ) async {
+    try {
+      final response = await http.get(Uri.parse('$_baseUrl/api/equipamentos/'));
+      if (response.statusCode == 200) {
+        final List<dynamic> dados = jsonDecode(response.body);
+        return dados
+            .where((item) => item['cod_sala'].toString() == codSala)
+            .map(
+              (item) => {
+                'cod_patrimonio': item['cod_patrimonio'].toString(),
+                'nome': item['nome'].toString(),
+              },
+            )
+            .toList();
       }
-      return data is List ? data : [];
-    } else {
-      throw Exception(
-        'Erro ao buscar todas as solicitações: ${response.statusCode}',
-      );
+      return [];
+    } catch (e) {
+      print('Erro ao buscar equipamentos por sala: $e');
+      return [];
     }
-  } catch (e) {
-    throw Exception('Erro ao buscar solicitações: $e');
+  }
+
+  static Future<List<Map<String, dynamic>>> buscarComponentes() async {
+    try {
+      final response = await http.get(Uri.parse('$_baseUrl/api/componentes/'));
+      if (response.statusCode == 200) {
+        final List<dynamic> dados = jsonDecode(response.body);
+        return dados
+            .map(
+              (item) => {
+                'id': item['id'].toString(),
+                'nome': item['nome'].toString(),
+              },
+            )
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      print('Erro ao buscar componentes: $e');
+      return [];
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> buscarMobiliarios() async {
+    try {
+      final response = await http.get(Uri.parse('$_baseUrl/api/mobiliarios/'));
+      if (response.statusCode == 200) {
+        final List<dynamic> dados = jsonDecode(response.body);
+        return dados
+            .map(
+              (item) => {
+                'id': item['id'].toString(),
+                'nome': item['nome'].toString(),
+              },
+            )
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      print('Erro ao buscar mobiliarios: $e');
+      return [];
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> buscarDefeitosPorCategoria(
+    String categoria,
+  ) async {
+    try {
+      final response = await http.get(Uri.parse('$_baseUrl/api/defeitos/'));
+      if (response.statusCode == 200) {
+        final List<dynamic> dados = jsonDecode(response.body);
+        return dados
+            .where(
+              (item) =>
+                  item['categoria'].toString().toLowerCase() ==
+                  categoria.toLowerCase(),
+            )
+            .map(
+              (item) => {
+                'id': item['id'].toString(),
+                'titulo': item['titulo'].toString(),
+              },
+            )
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      print('Erro ao buscar defeitos: $e');
+      return [];
+    }
+  }
+
+  static Future<bool> registrarSolicitacao(Map<String, dynamic> payload) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/api/solicitacoes/'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+      return response.statusCode == 201;
+    } catch (e) {
+      print('Erro ao registrar solicitação: $e');
+      return false;
+    }
   }
 }

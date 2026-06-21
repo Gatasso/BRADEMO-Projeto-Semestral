@@ -7,6 +7,7 @@ import '../models/solicitacao_model.dart';
 import 'profile_screen.dart';
 import 'cadastro_screen.dart';
 import '../widgets/custom_bottom_navigation.dart';
+import 'solicitacao_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -69,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (isAdminOrTi) {
       switch (_selectedIndex) {
         case 0:
-          return const Center(child: Text('Tela Reportar Defeito'));
+          return const SolicitacaoScreen();
         case 1:
           return const CadastroScreen();
         case 2:
@@ -82,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       switch (_selectedIndex) {
         case 0:
-          return const Center(child: Text('Tela Reportar Defeito'));
+          return const SolicitacaoScreen();
         case 1:
           return _buildHomeContent();
         case 2:
@@ -96,19 +97,15 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
 
     bool isAdminOrTi = (_userType == 'Admin' || _userType == 'TI');
-    bool hideAppBar = false;
+    bool isHomeContentActive = _selectedIndex == (isAdminOrTi ? 2 : 1);
 
-    if (isAdminOrTi) {
-      if (_selectedIndex == 1 || _selectedIndex == 3) {
-        hideAppBar = true;
-      }
-    } else {
-      if (_selectedIndex == 2) {
-        hideAppBar = true;
-      }
-    }
+    bool hideAppBar =
+        _selectedIndex == 0 ||
+        _selectedIndex == (isAdminOrTi ? 1 : -1) ||
+        _selectedIndex == (isAdminOrTi ? 3 : 2);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -117,7 +114,13 @@ class _HomeScreenState extends State<HomeScreen> {
           : AppBar(
               backgroundColor: Colors.white,
               elevation: 0,
-              title: const Text("arrumaÍF"),
+              title: Text(
+                'arrumaÍF',
+                style: textTheme.titleLarge?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               actions: [
                 Padding(
                   padding: const EdgeInsets.only(right: 20),
