@@ -10,8 +10,8 @@ class DatabaseService {
   static const String _boxName = 'equipments';
 
   // IP local do computador rodando a API.
-  // IMPORTANTE: Altere este IP para o IP da sua máquina na mesma rede Wi-Fi!
-  static const String _computerIp = "192.168.15.98";
+  // IMPORTANTE: Precisa ser o IP da sua máquina na mesma rede Wi-Fi do celular
+  static const String _computerIp = "192.168.31.207";
   static const String _baseUrl = "http://$_computerIp:5000/api";
 
   static Future<List<User>> loadUsers() async {
@@ -33,15 +33,36 @@ class DatabaseService {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        final apiList = data.map((eq) => Equipment.fromApi(eq)).toList();
 
-        // Limpa a base local e sincroniza com os dados do banco PostgreSQL
+        // Mapeia e armazena os caminhos de fotos customizadas locais já salvas no Hive
+        final Map<String, String> localCustomImages = {};
+        for (var eq in box.values) {
+          if (eq.codPatrimonio != null && eq.imageUrl.isNotEmpty) {
+            // Se o caminho não começar com 'assets/' (significa que é um arquivo customizado da galeria/câmera)
+            if (!eq.imageUrl.startsWith('assets/')) {
+              localCustomImages[eq.codPatrimonio!] = eq.imageUrl;
+            }
+          }
+        }
+
+        final apiList = data.map((eq) {
+          final mapped = Equipment.fromApi(eq);
+          final codPat = mapped.codPatrimonio;
+          // Preserva a imagem local do equipamento, se tiver
+          if (codPat != null && localCustomImages.containsKey(codPat)) {
+            return mapped.copyWith(imageUrl: localCustomImages[codPat]);
+          }
+          return mapped;
+        }).toList();
+
+        // Limpa a base local e sincroniza com os dados do banco
         await box.clear();
         await box.addAll(apiList);
         return apiList;
       }
-    } catch (e) {
-      print("Erro ao conectar na API: $e. Usando cache local do Hive.");
+    } catch (e, stacktrace) {
+      print("Erro ao conectar ou processar a API: $e");
+      print("Stacktrace: $stacktrace");
     }
 
     // Se a API estiver offline e o Hive estiver vazio, carrega os dados mockados
@@ -122,7 +143,10 @@ class DatabaseService {
         );
         if (isValidLocal) {
           final sessionBox = await Hive.openBox('session');
-          await sessionBox.put('user_id', 'e036a28a-b4fb-4c4c-9352-73de779e17dc'); // ID padrão do João Silva
+          await sessionBox.put(
+            'user_id',
+            'e036a28a-b4fb-4c4c-9352-73de779e17dc',
+          ); // ID padrão do João Silva
           await sessionBox.put('prontuario', prontuario);
           await sessionBox.put('nome', 'Usuário Local (Offline)');
           await sessionBox.put('tipo', 'Aluno');
@@ -142,17 +166,19 @@ class DatabaseService {
     String? descricaoDefeito,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/solicitacoes'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'usuario_id': usuarioId,
-          'cod_sala': codSala,
-          'id_defeito': idDefeito,
-          'cod_patrimonio': codPatrimonio,
-          'descricao_defeito': descricaoDefeito ?? '',
-        }),
-      ).timeout(const Duration(seconds: 4));
+      final response = await http
+          .post(
+            Uri.parse('$_baseUrl/solicitacoes'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({
+              'usuario_id': usuarioId,
+              'cod_sala': codSala,
+              'id_defeito': idDefeito,
+              'cod_patrimonio': codPatrimonio,
+              'descricao_defeito': descricaoDefeito ?? '',
+            }),
+          )
+          .timeout(const Duration(seconds: 4));
 
       if (response.statusCode == 201) {
         return true;
