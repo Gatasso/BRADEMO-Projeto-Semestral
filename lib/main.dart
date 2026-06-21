@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'models/equipment.dart';
-import 'screens/login_screen.dart';
+import 'screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -78,7 +78,7 @@ class MainApp extends StatelessWidget {
           bodyMedium: TextStyle(color: Colors.grey),
         ),
       ),
-      home: const LoginScreen(),
+      home: const SplashScreen(),
     );
   }
 }
