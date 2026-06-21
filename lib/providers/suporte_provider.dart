@@ -1,32 +1,63 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import '../services/cadastro_service.dart';
 import '../services/solicitacao_service.dart';
 
 class SuporteProvider extends ChangeNotifier {
+  final Box _authBox = Hive.box('authBox');
+
+  int _currentStep = 1;
+  bool _isLoading = false;
+  bool _isSubmitting = false;
+
   List<String> _salas = [];
   List<Map<String, dynamic>> _defeitosGeral = [];
   List<Map<String, dynamic>> _solucoesGeral = [];
-  bool _carregandoEstaticos = false;
+  List<Map<String, dynamic>> _equipamentos = [];
+  List<Map<String, dynamic>> _componentes = [];
+  List<Map<String, dynamic>> _mobiliarios = [];
 
+  String? _selectedRoom;
+  String _materialType = 'Equipamento';
+  String? _selectedEquipment;
+  bool _isComponent = false;
+  String? _selectedComponent;
+  String? _selectedMobiliario;
+  String? _selectedDefect;
+  String? _base64Image;
+
+  // Getters de Fluxo e UI
+  int get currentStep => _currentStep;
+  bool get isLoading => _isLoading;
+  bool get isSubmitting => _isSubmitting;
   List<String> get salas => _salas;
-  List<Map<String, dynamic>> get defeitosGeral => _defeitosGeral;
-  List<Map<String, dynamic>> get solucoesGeral => _solucoesGeral;
-  bool get carregandoEstaticos => _carregandoEstaticos;
+  List<Map<String, dynamic>> get equipamentos => _equipamentos;
+  List<Map<String, dynamic>> get componentes => _componentes;
+  List<Map<String, dynamic>> get mobiliarios => _mobiliarios;
+
+  String? get selectedRoom => _selectedRoom;
+  String get materialType => _materialType;
+  String? get selectedEquipment => _selectedEquipment;
+  bool get isComponent => _isComponent;
+  String? get selectedComponent => _selectedComponent;
+  String? get selectedMobiliario => _selectedMobiliario;
+  String? get selectedDefect => _selectedDefect;
+  String? get base64Image => _base64Image;
 
   Future<void> inicializarTabelasSuporte() async {
-    _carregandoEstaticos = true;
+    _isLoading = true;
     notifyListeners();
 
     _salas = await CadastroService.buscarSalas();
     _defeitosGeral = await CadastroService.buscarDefeitosGeral();
     _solucoesGeral = await CadastroService.buscarSolucoesGeral();
 
-    _carregandoEstaticos = false;
+    _isLoading = false;
     notifyListeners();
   }
 
-  List<Map<String, dynamic>> filtrarDefeitosPorCategoria(String categoria) {
-    final String busca = categoria.toLowerCase();
+  List<Map<String, dynamic>> get defeitosFiltrados {
+    final String busca = _materialType.toLowerCase();
     return _defeitosGeral.where((item) {
       final String itemCat = item['categoria'].toString().toLowerCase();
       if (busca.contains('mobi') && itemCat.contains('mobi')) return true;
@@ -35,29 +66,149 @@ class SuporteProvider extends ChangeNotifier {
     }).toList();
   }
 
-  List<Map<String, dynamic>> filtrarSolucoesPorCategoria(String categoria) {
-    final String busca = categoria.toLowerCase();
-    return _solucoesGeral.where((item) {
-      final String itemCat = item['categoria'].toString().toLowerCase();
-      if (busca.contains('mobi') && itemCat.contains('mobi')) return true;
-      if (busca.contains('equip') && itemCat.contains('equip')) return true;
-      return itemCat == busca;
-    }).toList();
+  void setRoom(String? room) {
+    _selectedRoom = room;
+    notifyListeners();
   }
 
-  Future<void> invalidarCacheEAtualizar(String tipoEntidade) async {
-    _carregandoEstaticos = true;
+  void setMaterialType(String type) {
+    _materialType = type;
+    _selectedEquipment = null;
+    _selectedComponent = null;
+    _selectedMobiliario = null;
+    _selectedDefect = null;
+    _isComponent = false;
+    notifyListeners();
+  }
+
+  void setEquipment(String? equip) {
+    _selectedEquipment = equip;
+    notifyListeners();
+  }
+
+  void setMobiliario(String? mobi) {
+    _selectedMobiliario = mobi;
+    notifyListeners();
+  }
+
+  void setDefect(String? defect) {
+    _selectedDefect = defect;
+    notifyListeners();
+  }
+
+  void setImage(String? base64) {
+    _base64Image = base64;
+    notifyListeners();
+  }
+
+  void backStep() {
+    if (_currentStep > 1) {
+      _currentStep--;
+      notifyListeners();
+    }
+  }
+
+  void avancarPasso2() {
+    if (_selectedRoom != null) {
+      _currentStep = 2;
+      notifyListeners();
+    }
+  }
+
+  Future<void> avancarPasso3() async {
+    _isLoading = true;
+    notifyListeners();
+    if (_materialType == 'Equipamento') {
+      _equipamentos = await SolicitacaoService.buscarEquipamentosPorSala(
+        _selectedRoom!,
+      );
+      _selectedEquipment = null;
+    } else {
+      _mobiliarios = await SolicitacaoService.buscarMobiliarios();
+      _selectedMobiliario = null;
+    }
+    _isLoading = false;
+    _currentStep = 3;
+    notifyListeners();
+  }
+
+  void avancarPasso4() {
+    _selectedDefect = null;
+    _currentStep = 4;
+    notifyListeners();
+  }
+
+  Future<void> alternarComponenteCheckbox(bool checked) async {
+    _isComponent = checked;
+    _selectedComponent = null;
+    _componentes = [];
     notifyListeners();
 
-    if (tipoEntidade == 'local') {
-      _salas = await CadastroService.buscarSalas();
-    } else if (tipoEntidade == 'defeito') {
-      _defeitosGeral = await CadastroService.buscarDefeitosGeral();
-    } else if (tipoEntidade == 'solucao') {
-      _solucoesGeral = await CadastroService.buscarSolucoesGeral();
+    if (_isComponent) {
+      _isLoading = true;
+      notifyListeners();
+      _componentes = await SolicitacaoService.buscarComponentes();
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> dispararSubmissaoServidor(String descricao) async {
+    final String? usuarioId = _authBox.get('usuario_id');
+    if (usuarioId == null || _selectedDefect == null) return false;
+
+    _isSubmitting = true;
+    notifyListeners();
+
+    final Map<String, dynamic> payload = {
+      'usuario_id': usuarioId,
+      'cod_sala': _selectedRoom,
+      'id_defeito': _selectedDefect,
+      'descricao_defeito': descricao.trim().isEmpty ? null : descricao.trim(),
+      'url_foto_anexo': _base64Image,
+      'cod_patrimonio': null,
+      'mobiliario_id': null,
+      'componente_id': null,
+    };
+
+    if (_materialType == 'Mobília') {
+      payload['mobiliario_id'] = _selectedMobiliario;
+    } else {
+      if (_isComponent) {
+        payload['componente_id'] = _selectedComponent;
+      } else {
+        payload['cod_patrimonio'] = _selectedEquipment;
+      }
     }
 
-    _carregandoEstaticos = false;
+    final sucesso = await SolicitacaoService.registrarSolicitacao(payload);
+    _isSubmitting = false;
+
+    if (sucesso) {
+      resetarFormulario();
+    } else {
+      notifyListeners();
+    }
+    return sucesso;
+  }
+
+  void resetarFormulario() {
+    _currentStep = 1;
+    _selectedRoom = null;
+    _selectedEquipment = null;
+    _selectedComponent = null;
+    _selectedMobiliario = null;
+    _selectedDefect = null;
+    _base64Image = null;
+    _isComponent = false;
+    _equipamentos = [];
+    _mobiliarios = [];
+    _componentes = [];
+    notifyListeners();
+  }
+
+  void setComponent(String? comp) {
+    _selectedComponent = comp;
     notifyListeners();
   }
 }

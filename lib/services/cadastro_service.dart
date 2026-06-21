@@ -43,7 +43,7 @@ class CadastroService {
     try {
       final response = await http
           .get(
-            Uri.parse('$_baseUrl/api/defeitos/'),
+            Uri.parse('$_baseUrl/api/suporte/defeitos'),
             headers: {'Content-Type': 'application/json'},
           )
           .timeout(const Duration(seconds: 10));
@@ -53,7 +53,7 @@ class CadastroService {
         final listaDefeitos = dados
             .map(
               (item) => {
-                'id': item['id'].toString(),
+                'id': item['id_defeito'].toString(),
                 'titulo': item['titulo'].toString(),
                 'categoria': item['categoria'].toString(),
               },
@@ -80,7 +80,7 @@ class CadastroService {
     try {
       final response = await http
           .get(
-            Uri.parse('$_baseUrl/api/solucoes/'),
+            Uri.parse('$_baseUrl/api/suporte/solucoes'),
             headers: {'Content-Type': 'application/json'},
           )
           .timeout(const Duration(seconds: 10));
@@ -90,7 +90,7 @@ class CadastroService {
         final listaSolucoes = dados
             .map(
               (item) => {
-                'id': item['id'].toString(),
+                'id': item['id_solucao'].toString(),
                 'titulo': item['titulo'].toString(),
                 'categoria': item['categoria'].toString(),
               },

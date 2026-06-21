@@ -1,10 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
-import '../services/cadastro_service.dart';
-import '../services/solicitacao_service.dart';
+import '../providers/suporte_provider.dart';
 
 class SolicitacaoScreen extends StatefulWidget {
   const SolicitacaoScreen({super.key});
@@ -14,231 +13,8 @@ class SolicitacaoScreen extends StatefulWidget {
 }
 
 class _SolicitacaoScreenState extends State<SolicitacaoScreen> {
-  final _formKey = GlobalKey<FormState>();
   final _descricaoController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
-
-  int _currentStep = 1;
-  bool _isLoading = true;
-  bool _isSubmitting = false;
-
-  List<String> _salas = [];
-  List<Map<String, dynamic>> _equipamentos = [];
-  List<Map<String, dynamic>> _componentes = [];
-  List<Map<String, dynamic>> _mobiliarios = [];
-  List<Map<String, dynamic>> _defeitos = [];
-
-  String? _selectedRoom;
-  String _materialType = 'Equipamento';
-  String? _selectedEquipment;
-  bool _isComponent = false;
-  String? _selectedComponent;
-  String? _selectedMobiliario;
-  String? _selectedDefect;
-  String? _base64Image;
-
-  @override
-  void initState() {
-    super.initState();
-    _carregarSalas();
-  }
-
-  Future<void> _carregarSalas() async {
-    try {
-      final salasCarregadas = await CadastroService.buscarSalas();
-      setState(() {
-        _salas = salasCarregadas;
-        _isLoading = false;
-      });
-    } catch (_) {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _avancarParaPasso2() async {
-    if (_selectedRoom == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, selecione uma sala para continuar.'),
-        ),
-      );
-      return;
-    }
-    setState(() => _currentStep = 2);
-  }
-
-  Future<void> _avancarParaPasso3() async {
-    setState(() => _isLoading = true);
-    try {
-      if (_materialType == 'Equipamento') {
-        final equips = await SolicitacaoService.buscarEquipamentosPorSala(
-          _selectedRoom!,
-        );
-        setState(() {
-          _equipamentos = equips;
-          _selectedEquipment = null;
-        });
-      } else {
-        final mobis = await SolicitacaoService.buscarMobiliarios();
-        setState(() {
-          _mobiliarios = mobis;
-          _selectedMobiliario = null;
-        });
-      }
-    } catch (_) {}
-    setState(() {
-      _isLoading = false;
-      _currentStep = 3;
-    });
-  }
-
-  Future<void> _avancarParaPasso4() async {
-    if (_materialType == 'Equipamento' && _selectedEquipment == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, selecione um equipamento.')),
-      );
-      return;
-    }
-    if (_materialType == 'Equipamento' &&
-        _isComponent &&
-        _selectedComponent == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, selecione o componente.')),
-      );
-      return;
-    }
-    if (_materialType == 'Mobília' && _selectedMobiliario == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, selecione uma mobília.')),
-      );
-      return;
-    }
-
-    setState(() => _isLoading = true);
-    try {
-      final categoria = _materialType == 'Mobília'
-          ? 'Mobiliário'
-          : 'Equipamento';
-      final listaDefeitos = await SolicitacaoService.buscarDefeitosPorCategoria(
-        categoria,
-      );
-
-      final seenIds = <String>{};
-      final uniqueDefects = listaDefeitos
-          .where((def) => seenIds.add(def['id'].toString()))
-          .toList();
-
-      setState(() {
-        _defeitos = uniqueDefects;
-        _selectedDefect = null;
-        _isLoading = false;
-        _currentStep = 4;
-      });
-    } catch (_) {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _onComponentCheckboxChanged(bool? checked) async {
-    setState(() {
-      _isComponent = checked ?? false;
-      _selectedComponent = null;
-      _componentes = [];
-    });
-
-    if (_isComponent) {
-      final comps = await SolicitacaoService.buscarComponentes();
-      setState(() => _componentes = comps);
-    }
-  }
-
-  Future<void> _pickImage(ImageSource source) async {
-    try {
-      final XFile? image = await _picker.pickImage(
-        source: source,
-        imageQuality: 70,
-      );
-      if (image != null) {
-        final bytes = await File(image.path).readAsBytes();
-        setState(() {
-          _base64Image = base64Encode(bytes);
-        });
-      }
-    } catch (e) {
-      debugPrint('Erro ao selecionar imagem: $e');
-    }
-  }
-
-  Future<void> _enviarSolicitacao() async {
-    if (_selectedDefect == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, selecione o defeito.')),
-      );
-      return;
-    }
-
-    final authBox = Hive.box('authBox');
-    final String? usuarioId = authBox.get('usuario_id');
-    if (usuarioId == null) return;
-
-    setState(() => _isSubmitting = true);
-
-    final Map<String, dynamic> payload = {
-      'usuario_id': usuarioId,
-      'cod_sala': _selectedRoom,
-      'id_defeito': _selectedDefect,
-      'descricao_defeito': _descricaoController.text.trim().isEmpty
-          ? null
-          : _descricaoController.text.trim(),
-      'url_foto_anexo': _base64Image,
-      'cod_patrimonio': null,
-      'mobiliario_id': null,
-      'componente_id': null,
-    };
-
-    if (_materialType == 'Mobília') {
-      payload['mobiliario_id'] = _selectedMobiliario;
-    } else {
-      if (_isComponent) {
-        payload['componente_id'] = _selectedComponent;
-      } else {
-        payload['cod_patrimonio'] = _selectedEquipment;
-      }
-    }
-
-    final sucesso = await SolicitacaoService.registrarSolicitacao(payload);
-
-    setState(() => _isSubmitting = false);
-
-    if (mounted) {
-      if (sucesso) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Chamado aberto com sucesso!')),
-        );
-        _descricaoController.clear();
-        setState(() {
-          _currentStep = 1;
-          _selectedRoom = null;
-          _selectedEquipment = null;
-          _selectedComponent = null;
-          _selectedMobiliario = null;
-          _selectedDefect = null;
-          _base64Image = null;
-          _isComponent = false;
-          _equipamentos = [];
-          _mobiliarios = [];
-          _componentes = [];
-          _defeitos = [];
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Erro ao registrar chamado no servidor.'),
-          ),
-        );
-      }
-    }
-  }
 
   @override
   void dispose() {
@@ -246,10 +22,27 @@ class _SolicitacaoScreenState extends State<SolicitacaoScreen> {
     super.dispose();
   }
 
+  Future<void> _capturarFoto(
+    ImageSource source,
+    SuporteProvider provider,
+  ) async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: source,
+        imageQuality: 70,
+      );
+      if (image != null) {
+        final bytes = await File(image.path).readAsBytes();
+        provider.setImage(base64Encode(bytes));
+      }
+    } catch (_) {}
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final provider = context.watch<SuporteProvider>();
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -264,25 +57,29 @@ class _SolicitacaoScreenState extends State<SolicitacaoScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        leading: _currentStep > 1
+        leading: provider.currentStep > 1
             ? IconButton(
                 icon: Icon(Icons.arrow_back, color: theme.colorScheme.primary),
-                onPressed: () => setState(() => _currentStep--),
+                onPressed: () => provider.backStep(),
               )
             : null,
       ),
       body: SafeArea(
-        child: _isLoading
+        child: provider.isLoading
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (_currentStep == 1) _buildStep1(theme, textTheme),
-                    if (_currentStep == 2) _buildStep2(theme, textTheme),
-                    if (_currentStep == 3) _buildStep3(theme, textTheme),
-                    if (_currentStep == 4) _buildStep4(theme, textTheme),
+                    if (provider.currentStep == 1)
+                      _buildStep1(provider, theme, textTheme),
+                    if (provider.currentStep == 2)
+                      _buildStep2(provider, theme, textTheme),
+                    if (provider.currentStep == 3)
+                      _buildStep3(provider, theme, textTheme),
+                    if (provider.currentStep == 4)
+                      _buildStep4(provider, theme, textTheme),
                   ],
                 ),
               ),
@@ -324,9 +121,12 @@ class _SolicitacaoScreenState extends State<SolicitacaoScreen> {
     );
   }
 
-  Widget _buildStep1(ThemeData theme, TextTheme textTheme) {
+  Widget _buildStep1(
+    SuporteProvider provider,
+    ThemeData theme,
+    TextTheme textTheme,
+  ) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildStepHeader(
           'Passo 1',
@@ -336,27 +136,30 @@ class _SolicitacaoScreenState extends State<SolicitacaoScreen> {
         ),
         const SizedBox(height: 40),
         DropdownButtonFormField<String>(
-          key: const ValueKey('step1_room_dropdown_field'),
-          value: _selectedRoom,
+          key: const ValueKey('step1_room_dropdown'),
+          value: provider.selectedRoom,
           decoration: _getInputDecoration(Icons.location_on, theme),
           hint: const Text('Selecione a Sala ou Laboratório'),
-          items: _salas
+          items: provider.salas
               .map((sala) => DropdownMenuItem(value: sala, child: Text(sala)))
               .toList(),
-          onChanged: (val) => setState(() => _selectedRoom = val),
+          onChanged: (val) => provider.setRoom(val),
         ),
         const SizedBox(height: 50),
-        _buildNextButton(_avancarParaPasso2, theme),
+        _buildNextButton(() => provider.avancarPasso2(), theme),
       ],
     );
   }
 
-  Widget _buildStep2(ThemeData theme, TextTheme textTheme) {
-    final isEquip = _materialType == 'Equipamento';
-    final isMobi = _materialType == 'Mobília';
+  Widget _buildStep2(
+    SuporteProvider provider,
+    ThemeData theme,
+    TextTheme textTheme,
+  ) {
+    final isEquip = provider.materialType == 'Equipamento';
+    final isMobi = provider.materialType == 'Mobília';
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildStepHeader(
           'Passo 2',
@@ -369,7 +172,7 @@ class _SolicitacaoScreenState extends State<SolicitacaoScreen> {
           children: [
             Expanded(
               child: GestureDetector(
-                onTap: () => setState(() => _materialType = 'Equipamento'),
+                onTap: () => provider.setMaterialType('Equipamento'),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 150),
                   height: 120,
@@ -406,7 +209,7 @@ class _SolicitacaoScreenState extends State<SolicitacaoScreen> {
             const SizedBox(width: 16),
             Expanded(
               child: GestureDetector(
-                onTap: () => setState(() => _materialType = 'Mobília'),
+                onTap: () => provider.setMaterialType('Mobília'),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 150),
                   height: 120,
@@ -443,43 +246,38 @@ class _SolicitacaoScreenState extends State<SolicitacaoScreen> {
           ],
         ),
         const SizedBox(height: 50),
-        _buildNextButton(_avancarParaPasso3, theme),
+        _buildNextButton(() => provider.avancarPasso3(), theme),
       ],
     );
   }
 
-  Widget _buildStep3(ThemeData theme, TextTheme textTheme) {
-    final bool isEquip = _materialType == 'Equipamento';
+  Widget _buildStep3(
+    SuporteProvider provider,
+    ThemeData theme,
+    TextTheme textTheme,
+  ) {
+    final bool isEquip = provider.materialType == 'Equipamento';
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildStepHeader('Passo 3', 'Selecione o Material', theme, textTheme),
         const SizedBox(height: 40),
         if (isEquip) ...[
           DropdownButtonFormField<String>(
-            key: ValueKey('step3_equip_dropdown_${_equipamentos.length}'),
-            value: _selectedEquipment,
+            key: ValueKey('step3_eq_${provider.equipamentos.length}'),
+            value: provider.selectedEquipment,
             decoration: _getInputDecoration(Icons.devices, theme),
             hint: const Text('Selecione o Equipamento'),
-            items: _equipamentos.isNotEmpty
-                ? _equipamentos.map((eq) {
-                    return DropdownMenuItem(
-                      value: eq['cod_patrimonio'].toString(),
-                      child: Text(
-                        "${eq['nome']} (${eq['cod_patrimonio']})",
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    );
-                  }).toList()
-                : null,
-            onChanged: _equipamentos.isNotEmpty
-                ? (val) => setState(() => _selectedEquipment = val)
-                : null,
-            disabledHint: Text(
-              'Nenhum equipamento nesta sala',
-              style: TextStyle(color: Colors.grey[400]),
-            ),
+            items: provider.equipamentos.map((eq) {
+              return DropdownMenuItem(
+                value: eq['cod_patrimonio'].toString(),
+                child: Text(
+                  "${eq['nome']} (${eq['cod_patrimonio']})",
+                  overflow: TextOverflow.ellipsis,
+                ),
+              );
+            }).toList(),
+            onChanged: (val) => provider.setEquipment(val),
           ),
           const SizedBox(height: 20),
           CheckboxListTile(
@@ -487,65 +285,62 @@ class _SolicitacaoScreenState extends State<SolicitacaoScreen> {
               'O defeito é em um componente/acessório deste equipamento?',
               style: TextStyle(fontSize: 13),
             ),
-            value: _isComponent,
+            value: provider.isComponent,
             controlAffinity: ListTileControlAffinity.leading,
             contentPadding: EdgeInsets.zero,
-            onChanged: _selectedEquipment != null
-                ? _onComponentCheckboxChanged
+            onChanged: provider.selectedEquipment != null
+                ? (val) => provider.alternarComponenteCheckbox(val ?? false)
                 : null,
           ),
-          if (_isComponent && _componentes.isNotEmpty) ...[
+          if (provider.isComponent && provider.componentes.isNotEmpty) ...[
             const SizedBox(height: 20),
             DropdownButtonFormField<String>(
-              key: ValueKey('step3_comp_dropdown_${_componentes.length}'),
-              value: _selectedComponent,
+              key: ValueKey('step3_comp_${provider.componentes.length}'),
+              value: provider.selectedComponent,
               decoration: _getInputDecoration(Icons.cable, theme),
               hint: const Text('Selecione o Componente Afetado'),
-              items: _componentes
+              items: provider.componentes
                   .map(
-                    (comp) => DropdownMenuItem(
-                      value: comp['id'].toString(),
-                      child: Text(comp['nome'].toString()),
+                    (c) => DropdownMenuItem(
+                      value: c['id'].toString(),
+                      child: Text(c['nome'].toString()),
                     ),
                   )
                   .toList(),
-              onChanged: (val) => setState(() => _selectedComponent = val),
+              onChanged: (val) => provider.setComponent(val),
             ),
           ],
         ] else ...[
           DropdownButtonFormField<String>(
-            key: ValueKey('step3_mobi_dropdown_${_mobiliarios.length}'),
-            value: _selectedMobiliario,
+            key: ValueKey('step3_mob_${provider.mobiliarios.length}'),
+            value: provider.selectedMobiliario,
             decoration: _getInputDecoration(Icons.chair, theme),
             hint: const Text('Selecione a Mobília Afetada'),
-            items: _mobiliarios.isNotEmpty
-                ? _mobiliarios
-                      .map(
-                        (mobi) => DropdownMenuItem(
-                          value: mobi['id'].toString(),
-                          child: Text(mobi['nome'].toString()),
-                        ),
-                      )
-                      .toList()
-                : null,
-            onChanged: _mobiliarios.isNotEmpty
-                ? (val) => setState(() => _selectedMobiliario = val)
-                : null,
-            disabledHint: Text(
-              'Nenhuma mobília cadastrada',
-              style: TextStyle(color: Colors.grey[400]),
-            ),
+            items: provider.mobiliarios
+                .map(
+                  (m) => DropdownMenuItem(
+                    value: m['id'].toString(),
+                    child: Text(m['nome'].toString()),
+                  ),
+                )
+                .toList(),
+            onChanged: (val) => provider.setMobiliario(val),
           ),
         ],
         const SizedBox(height: 50),
-        _buildNextButton(_avancarParaPasso4, theme),
+        _buildNextButton(() => provider.avancarPasso4(), theme),
       ],
     );
   }
 
-  Widget _buildStep4(ThemeData theme, TextTheme textTheme) {
+  Widget _buildStep4(
+    SuporteProvider provider,
+    ThemeData theme,
+    TextTheme textTheme,
+  ) {
+    final defeitos = provider.defeitosFiltrados;
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildStepHeader(
           'Passo 4',
@@ -557,11 +352,11 @@ class _SolicitacaoScreenState extends State<SolicitacaoScreen> {
         Center(
           child: Column(
             children: [
-              _base64Image != null
+              provider.base64Image != null
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: Image.memory(
-                        base64Decode(_base64Image!),
+                        base64Decode(provider.base64Image!),
                         height: 120,
                         width: 120,
                         fit: BoxFit.cover,
@@ -585,13 +380,15 @@ class _SolicitacaoScreenState extends State<SolicitacaoScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   TextButton.icon(
-                    onPressed: () => _pickImage(ImageSource.camera),
+                    onPressed: () =>
+                        _capturarFoto(ImageSource.camera, provider),
                     icon: const Icon(Icons.photo_camera, size: 14),
                     label: const Text('Câmera', style: TextStyle(fontSize: 12)),
                   ),
                   const SizedBox(width: 10),
                   TextButton.icon(
-                    onPressed: () => _pickImage(ImageSource.gallery),
+                    onPressed: () =>
+                        _capturarFoto(ImageSource.gallery, provider),
                     icon: const Icon(Icons.photo, size: 14),
                     label: const Text(
                       'Galeria',
@@ -606,26 +403,22 @@ class _SolicitacaoScreenState extends State<SolicitacaoScreen> {
         const SizedBox(height: 24),
         DropdownButtonFormField<String>(
           key: ValueKey(
-            'step4_defect_dropdown_${_materialType}_${_defeitos.hashCode}',
+            'step4_def_${defeitos.length}_${provider.materialType}',
           ),
-          value: _selectedDefect,
+          value: provider.selectedDefect,
           decoration: _getInputDecoration(Icons.report_problem, theme),
           hint: const Text('Selecione o Defeito Encontrado'),
-          items: _defeitos.isNotEmpty
-              ? _defeitos
-                    .map(
-                      (def) => DropdownMenuItem(
-                        value: def['id'].toString(),
-                        child: Text(def['titulo'].toString()),
-                      ),
-                    )
-                    .toList()
-              : null,
-          onChanged: _defeitos.isNotEmpty
-              ? (val) => setState(() => _selectedDefect = val)
-              : null,
+          items: defeitos
+              .map(
+                (def) => DropdownMenuItem(
+                  value: def['id'].toString(),
+                  child: Text(def['titulo'].toString()),
+                ),
+              )
+              .toList(),
+          onChanged: (val) => provider.setDefect(val),
           disabledHint: Text(
-            'Carregando defeitos...',
+            'Nenhum defeito encontrado',
             style: TextStyle(color: Colors.grey[400]),
           ),
         ),
@@ -644,14 +437,28 @@ class _SolicitacaoScreenState extends State<SolicitacaoScreen> {
           width: double.infinity,
           height: 50,
           child: ElevatedButton(
-            onPressed: _isSubmitting ? null : _enviarSolicitacao,
+            onPressed: provider.isSubmitting
+                ? null
+                : () async {
+                    final status = await provider.dispararSubmissaoServidor(
+                      _descricaoController.text,
+                    );
+                    if (status && mounted) {
+                      _descricaoController.clear();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Chamado aberto com sucesso!'),
+                        ),
+                      );
+                    }
+                  },
             style: ElevatedButton.styleFrom(
               backgroundColor: theme.colorScheme.primary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: _isSubmitting
+            child: provider.isSubmitting
                 ? const CircularProgressIndicator(color: Colors.white)
                 : const Text(
                     'Registrar Chamado',
@@ -691,7 +498,7 @@ class _SolicitacaoScreenState extends State<SolicitacaoScreen> {
     );
   }
 
-  InputDecoration _createInputDecoration(
+  InputDecoration _getInputDecoration(
     IconData icon,
     ThemeData theme, {
     String? placeholder,
@@ -707,13 +514,5 @@ class _SolicitacaoScreenState extends State<SolicitacaoScreen> {
       ),
       prefixIcon: Icon(icon, color: theme.colorScheme.primary),
     );
-  }
-
-  InputDecoration _getInputDecoration(
-    IconData icon,
-    ThemeData theme, {
-    String? placeholder,
-  }) {
-    return _createInputDecoration(icon, theme, placeholder: placeholder);
   }
 }
