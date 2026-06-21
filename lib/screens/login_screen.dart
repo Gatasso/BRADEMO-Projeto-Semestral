@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:brademo_projeto_final/screens/recuperar_senha_screen.dart';
 import '../widgets/login_form.dart';
 import '../services/database_service.dart';
+import 'package:provider/provider.dart';
+import '../providers/user_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -28,9 +30,15 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
+    setState(() => _isLoading = true);
+
     final isSucess = await AuthService.login(prontuario, senha);
 
     if (!mounted) return;
+
+    context.read<UserProvider>().atualizarEstadoAposLogin();
+
+    setState(() => _isLoading = false);
 
     if (isSucess) {
       Navigator.pushReplacement(

@@ -1,9 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import '../services/database_service.dart';
 import '../services/user_service.dart';
+import '../providers/user_provider.dart';
 import 'login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -17,38 +19,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final ImagePicker _imagePicker = ImagePicker();
   String? _selectedImagePath;
   bool _loadingPhoto = true;
-  
-  // Dados do usuário
-  String _nome = 'Carregando...';
-  String _prontuario = '';
-  String _email = '';
-  String _tipo = '';
 
   @override
   void initState() {
     super.initState();
     _loadProfilePhoto();
-    _loadUserData();
   }
 
-  /// Carrega dados do usuário do Hive
-  Future<void> _loadUserData() async {
-    try {
-      final user = await UserService.getCurrentUser();
-      if (mounted && user != null) {
-        setState(() {
-          _nome = user['nome'] ?? 'Usuário';
-          _prontuario = user['prontuario'] ?? '';
-          _email = user['email'] ?? '';
-          _tipo = user['tipo'] ?? '';
-        });
-      }
-    } catch (e) {
-      debugPrint('Erro ao carregar dados do usuário: $e');
-    }
-  }
-
-  /// Carrega a foto persistida no Hive ao abrir a tela.
   Future<void> _loadProfilePhoto() async {
     try {
       final saved = await DatabaseService.loadProfilePhoto();
@@ -67,7 +44,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _logout(BuildContext context) async {
-    await UserService.logout();
+    await UserService.logout(context);
     if (!mounted) return;
     Navigator.pushReplacement(
       context,
@@ -99,22 +76,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  /// Converte a imagem para base64, persiste no Hive e atualiza o estado de forma segura.
   Future<void> _saveImage(String path) async {
     try {
       final bytes = await File(path).readAsBytes();
       final base64String = base64Encode(bytes);
 
-      // Salva no banco de dados (Hive)
       await DatabaseService.saveProfilePhoto(base64String);
 
-      // Verifica se o widget ainda está na árvore antes de atualizar o estado ou mostrar SnackBar
       if (!mounted) return;
-
       setState(() => _selectedImagePath = base64String);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Foto de perfil atualizada com sucesso')),
+        const SnackBar(content: Text('Foto de perfil updated com sucesso')),
       );
     } catch (e) {
       _showError('Erro ao salvar foto: $e');
@@ -123,7 +96,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Widget _buildProfilePhoto() {
@@ -156,6 +131,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+
+    // 🟢 ESCUTA O USERPROVIDER PARA OBTER OS DADOS DO USUÁRIO LOGADO EM TEMPO REAL
+    final userProvider = context.watch<UserProvider>();
+    final usuario = userProvider.usuarioLogado;
+
+    final String nomeExibicao = usuario?.nome ?? 'Usuário';
+    final String tipoExibicao = usuario?.tipo ?? 'Aluno';
+    final String prontuarioExibicao = usuario?.prontuario ?? '';
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -206,7 +189,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   shape: BoxShape.circle,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.2),
+                                      color: Colors.black.withOpacity(0.2),
                                       blurRadius: 8,
                                       offset: const Offset(0, 2),
                                     ),
@@ -244,7 +227,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ],
                                   child: const Padding(
                                     padding: EdgeInsets.all(8.0),
-                                    child: Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                                    child: Icon(
+                                      Icons.camera_alt,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -252,7 +239,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            _nome,
+                            nomeExibicao,
                             style: textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: theme.colorScheme.primary,
@@ -261,8 +248,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            _tipo,
-                            style: textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                            tipoExibicao,
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: Colors.grey[600],
+                            ),
                           ),
                         ],
                       ),
@@ -282,21 +271,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         color: const Color(0xFFF1F3F6),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                          color: theme.colorScheme.primary.withOpacity(0.1),
                         ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildInfoRow(context, Icons.badge_outlined, 'Prontuário', _prontuario),
+                          _buildInfoRow(
+                            context,
+                            Icons.badge_outlined,
+                            'Prontuário',
+                            prontuarioExibicao,
+                          ),
                           const SizedBox(height: 16),
                           Divider(color: Colors.grey[400]),
                           const SizedBox(height: 16),
-                          _buildInfoRow(context, Icons.email_outlined, 'E-mail', _email),
-                          const SizedBox(height: 16),
-                          Divider(color: Colors.grey[400]),
-                          const SizedBox(height: 16),
-                          _buildInfoRow(context, Icons.business_outlined, 'Tipo', _tipo),
+                          _buildInfoRow(
+                            context,
+                            Icons.business_outlined,
+                            'Tipo de Conta',
+                            tipoExibicao,
+                          ),
                         ],
                       ),
                     ),
@@ -315,18 +310,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         color: const Color(0xFFF1F3F6),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                          color: theme.colorScheme.primary.withOpacity(0.1),
                         ),
                       ),
                       child: ListTile(
-                        leading: Icon(Icons.lock_outline, color: theme.colorScheme.primary),
+                        leading: Icon(
+                          Icons.lock_outline,
+                          color: theme.colorScheme.primary,
+                        ),
                         title: const Text('Alterar Senha'),
                         subtitle: const Text('Atualize sua senha de acesso'),
                         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                         contentPadding: EdgeInsets.zero,
                         onTap: () {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Funcionalidade em desenvolvimento')),
+                            const SnackBar(
+                              content: Text(
+                                'Funcionalidade em desenvolvimento',
+                              ),
+                            ),
                           );
                         },
                       ),
@@ -342,7 +344,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildInfoRow(BuildContext context, IconData icon, String label, String value) {
+  Widget _buildInfoRow(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value,
+  ) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
 

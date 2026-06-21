@@ -1,5 +1,8 @@
+import 'package:brademo_projeto_final/providers/suporte_provider.dart';
+import 'package:brademo_projeto_final/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:provider/provider.dart';
 import 'models/equipment.dart';
 import 'screens/login_screen.dart';
 import 'services/notification_service.dart';
@@ -14,21 +17,33 @@ void main() async {
       "Aviso: Arquivo .env não encontrado, usando fallbacks configurados.",
     );
   }
-  await Hive.initFlutter();
+  await Hive.initFlutter(); // [cite: 80]
 
   // Registra o adaptador existente de equipamentos
   Hive.registerAdapter(EquipmentAdapter());
 
-  // Abre todas as caixas necessárias na inicialização do app
+  // Abre todas as caixas necessárias na inicialização do app [cite: 82]
   await Hive.openBox<Equipment>('equipments');
   await Hive.openBox('authBox');
   await Hive.openBox('profile_box');
   await Hive.openBox('solicitations');
-  await Hive.openBox('appCacheBox');
+  await Hive.openBox('tabelasSuporteBox');
 
   NotificationService.init();
 
-  runApp(const MainApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => UserProvider()..carregarSessaoUsuario(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => SuporteProvider()..inicializarTabelasSuporte(),
+        ),
+      ],
+      child: const MainApp(),
+    ),
+  );
 }
 
 class MainApp extends StatelessWidget {

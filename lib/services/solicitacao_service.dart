@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:hive/hive.dart';
 import '../config/config.dart';
 import '../models/solicitacao_model.dart';
+import 'cadastro_service.dart';
 
 final String? _baseUrl = Config.apiUrl;
 
@@ -17,11 +18,8 @@ Future<List<Solicitacao>> buscarSolicitacoesUsuario() async {
       final List<dynamic> dados = jsonDecode(response.body);
       return dados.map((json) => Solicitacao.fromJson(json)).toList();
     }
-    return [];
-  } catch (e) {
-    print('Erro ao buscar solicitações: $e');
-    return [];
-  }
+  } catch (_) {}
+  return [];
 }
 
 class SolicitacaoService {
@@ -42,11 +40,8 @@ class SolicitacaoService {
             )
             .toList();
       }
-      return [];
-    } catch (e) {
-      print('Erro ao buscar equipamentos por sala: $e');
-      return [];
-    }
+    } catch (_) {}
+    return [];
   }
 
   static Future<List<Map<String, dynamic>>> buscarComponentes() async {
@@ -63,11 +58,8 @@ class SolicitacaoService {
             )
             .toList();
       }
-      return [];
-    } catch (e) {
-      print('Erro ao buscar componentes: $e');
-      return [];
-    }
+    } catch (_) {}
+    return [];
   }
 
   static Future<List<Map<String, dynamic>>> buscarMobiliarios() async {
@@ -84,39 +76,22 @@ class SolicitacaoService {
             )
             .toList();
       }
-      return [];
-    } catch (e) {
-      print('Erro ao buscar mobiliarios: $e');
-      return [];
-    }
+    } catch (_) {}
+    return [];
   }
 
   static Future<List<Map<String, dynamic>>> buscarDefeitosPorCategoria(
     String categoria,
   ) async {
-    try {
-      final response = await http.get(Uri.parse('$_baseUrl/api/defeitos/'));
-      if (response.statusCode == 200) {
-        final List<dynamic> dados = jsonDecode(response.body);
-        return dados
-            .where(
-              (item) =>
-                  item['categoria'].toString().toLowerCase() ==
-                  categoria.toLowerCase(),
-            )
-            .map(
-              (item) => {
-                'id': item['id'].toString(),
-                'titulo': item['titulo'].toString(),
-              },
-            )
-            .toList();
-      }
-      return [];
-    } catch (e) {
-      print('Erro ao buscar defeitos: $e');
-      return [];
-    }
+    final todosDefeitos = await CadastroService.buscarDefeitosGeral();
+    final String busca = categoria.toLowerCase();
+
+    return todosDefeitos.where((item) {
+      final String itemCat = item['categoria'].toString().toLowerCase();
+      if (busca.contains('mobi') && itemCat.contains('mobi')) return true;
+      if (busca.contains('equip') && itemCat.contains('equip')) return true;
+      return itemCat == busca;
+    }).toList();
   }
 
   static Future<bool> registrarSolicitacao(Map<String, dynamic> payload) async {
@@ -127,9 +102,7 @@ class SolicitacaoService {
         body: jsonEncode(payload),
       );
       return response.statusCode == 201;
-    } catch (e) {
-      print('Erro ao registrar solicitação: $e');
-      return false;
-    }
+    } catch (_) {}
+    return false;
   }
 }

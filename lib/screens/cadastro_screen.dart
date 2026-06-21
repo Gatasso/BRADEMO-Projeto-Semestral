@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/cadastros_service.dart';
+import '../services/cadastro_service.dart';
 
 class CadastroScreen extends StatefulWidget {
   const CadastroScreen({super.key});

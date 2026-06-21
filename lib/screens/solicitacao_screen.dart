@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
-import '../services/cadastros_service.dart';
+import '../services/cadastro_service.dart';
 import '../services/solicitacao_service.dart';
 
 class SolicitacaoScreen extends StatefulWidget {
