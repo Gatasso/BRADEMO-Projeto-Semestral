@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:hive/hive.dart';
 import '../models/equipment.dart';
 import '../widgets/equipment_image.dart';
 import '../services/database_service.dart';
@@ -31,6 +32,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
   late TextEditingController _campusController;
   late TextEditingController _detailsController;
   late String _selectedPriority;
+  late ImageProvider _imageProvider;
 
   String? _selectedLocalImagePath;
 
@@ -54,6 +56,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     _campusController = TextEditingController(text: _currentEquipment.campus);
     _detailsController = TextEditingController(text: _currentEquipment.details);
     _selectedPriority = _currentEquipment.priority;
+    _imageProvider = getEquipmentImageProvider(_currentEquipment.imageUrl);
   }
 
   @override
@@ -73,6 +76,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       _detailsController.text = _currentEquipment.details;
       _selectedPriority = _currentEquipment.priority;
       _selectedLocalImagePath = null;
+      _imageProvider = getEquipmentImageProvider(_currentEquipment.imageUrl);
       _isEditing = false;
     });
   }
@@ -109,11 +113,25 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       imageUrl: finalImagePath,
     );
 
-    await DatabaseService.updateEquipment(0, updatedEquipment);
+    await DatabaseService.updateEquipment(updatedEquipment);
+
+    try {
+      final solicitationsBox = Hive.box('solicitations');
+      await solicitationsBox.put(widget.solicitacao.id, {
+        'imageUrl': finalImagePath,
+        'material': _nameController.text,
+        'cod_sala': _roomController.text,
+        'defeito_titulo': _detailsController.text,
+        'status': widget.solicitacao.status, // mantém o status original
+      });
+    } catch (e) {
+      debugPrint('Erro ao salvar alteração no Hive: $e');
+    }
 
     setState(() {
       _currentEquipment = updatedEquipment;
       _selectedLocalImagePath = null;
+      _imageProvider = getEquipmentImageProvider(updatedEquipment.imageUrl);
       _isEditing = false;
     });
 
@@ -138,6 +156,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       if (pickedFile != null) {
         setState(() {
           _selectedLocalImagePath = pickedFile.path;
+          _imageProvider = getEquipmentImageProvider(pickedFile.path);
         });
       }
     } catch (e) {
@@ -202,8 +221,6 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final displayImageUrl =
-        _selectedLocalImagePath ?? _currentEquipment.imageUrl;
 
     return PopScope(
       canPop: false,
@@ -245,9 +262,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                       bottomRight: Radius.circular(45),
                                     ),
                                     image: DecorationImage(
-                                      image: getEquipmentImageProvider(
-                                        displayImageUrl,
-                                      ),
+                                      image: _imageProvider,
                                       fit: BoxFit.cover,
                                     ),
                                   ),
@@ -454,9 +469,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                     bottomRight: Radius.circular(45),
                                   ),
                                   image: DecorationImage(
-                                    image: getEquipmentImageProvider(
-                                      displayImageUrl,
-                                    ),
+                                    image: _imageProvider,
                                     fit: BoxFit.cover,
                                   ),
                                 ),

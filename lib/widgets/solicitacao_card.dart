@@ -29,8 +29,8 @@ class SolicitacaoCard extends StatelessWidget {
         ? Colors.green
         : Colors.orange;
 
-    // Trata o fallback da imagem caso não venha uma URL válida da API Flask
-    final String imgUrl = solicitacao.imageUrl.startsWith('http')
+    // Usa a imagem da solicitação (seja URL, base64 ou asset), com fallback caso esteja vazia
+    final String imgUrl = solicitacao.imageUrl.isNotEmpty
         ? solicitacao.imageUrl
         : 'assets/images/computador.png';
 

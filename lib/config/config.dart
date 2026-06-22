@@ -2,7 +2,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class Config {
   static String? get apiUrl {
-    return dotenv.env['API_URL'];
+    return dotenv.env['API_URL'] ?? 'https://arrumaifapiflask.vercel.app';
   }
 
   static String? get defaultUserPassword {

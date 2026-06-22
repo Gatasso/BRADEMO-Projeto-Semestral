@@ -145,6 +145,11 @@ class _HomeScreenState extends State<HomeScreen> {
           setState(() {
             _selectedIndex = index;
           });
+          final bool isAdminOrTi = (_userType == 'Admin' || _userType == 'TI');
+          final int homeIndex = isAdminOrTi ? 2 : 1;
+          if (index == homeIndex) {
+            _carregarDados();
+          }
         },
       ),
     );
@@ -195,14 +200,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.only(bottom: 16.0),
                     child: SolicitacaoCard(
                       solicitacao: item,
-                      onTap: () {
-                        Navigator.push(
+                      onTap: () async {
+                        await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
                                 ItemDetailScreen(solicitacao: item),
                           ),
                         );
+                        _carregarDados();
                       },
                     ),
                   );

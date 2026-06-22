@@ -4,32 +4,55 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'models/equipment.dart';
-import 'screens/login_screen.dart';
+import 'screens/splash_screen.dart';
 import 'services/notification_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+Future<Box<T>> _openBoxWithTimeoutAndRetry<T>(String name) async {
+  try {
+    return await Hive.openBox<T>(name).timeout(const Duration(seconds: 2));
+  } catch (e) {
+    try {
+      await Hive.deleteBoxFromDisk(name);
+      return await Hive.openBox<T>(name).timeout(const Duration(seconds: 2));
+    } catch (_) {
+      rethrow;
+    }
+  }
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Inicialização das dependências do app
   try {
-    await dotenv.load(fileName: ".env");
-  } catch (e) {
-    debugPrint(
-      "Aviso: Arquivo .env não encontrado, usando fallbacks configurados.",
-    );
+    try {
+      await dotenv.load(fileName: ".env");
+    } catch (_) {}
+    
+    await Hive.initFlutter();
+
+    // Registro de adaptadores
+    if (!Hive.isAdapterRegistered(0)) {
+      Hive.registerAdapter(EquipmentAdapter());
+    }
+
+    // Abertura de caixas do Hive
+    await Future.wait([
+      _openBoxWithTimeoutAndRetry<Equipment>('equipments'),
+      _openBoxWithTimeoutAndRetry('authBox'),
+      _openBoxWithTimeoutAndRetry('profile_box'),
+      _openBoxWithTimeoutAndRetry('solicitations'),
+      _openBoxWithTimeoutAndRetry('tabelasSuporteBox'),
+    ]);
+
+    try {
+      await NotificationService.init();
+    } catch (_) {}
+  } catch (e, stackTrace) {
+    debugPrint("Erro na inicialização: $e");
+    debugPrint(stackTrace.toString());
   }
-  await Hive.initFlutter(); // [cite: 80]
-
-  // Registra o adaptador existente de equipamentos
-  Hive.registerAdapter(EquipmentAdapter());
-
-  // Abre todas as caixas necessárias na inicialização do app [cite: 82]
-  await Hive.openBox<Equipment>('equipments');
-  await Hive.openBox('authBox');
-  await Hive.openBox('profile_box');
-  await Hive.openBox('solicitations');
-  await Hive.openBox('tabelasSuporteBox');
-
-  NotificationService.init();
 
   runApp(
     MultiProvider(
@@ -113,7 +136,7 @@ class MainApp extends StatelessWidget {
           bodyMedium: TextStyle(color: Colors.grey),
         ),
       ),
-      home: const LoginScreen(),
+      home: const SplashScreen(),
     );
   }
 }

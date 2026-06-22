@@ -69,10 +69,16 @@ class DatabaseService {
     return box.values.toList();
   }
 
-  static Future<void> updateEquipment(int index, Equipment equipment) async {
+  static Future<void> updateEquipment(Equipment equipment) async {
     final box = Hive.box<Equipment>(_boxName);
-    // Atualiza localmente no Hive primeiro para resposta instantânea da interface
-    await box.putAt(index, equipment);
+    // Encontra o index do equipamento correspondente ao código de patrimônio
+    final index = box.values.toList().indexWhere(
+          (eq) => eq.codPatrimonio == equipment.codPatrimonio,
+        );
+    
+    if (index != -1) {
+      await box.putAt(index, equipment);
+    }
 
     try {
       if (equipment.codPatrimonio != null) {

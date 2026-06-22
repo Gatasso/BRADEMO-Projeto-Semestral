@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/equipment.dart';
+import '../models/solicitacao_model.dart';
 import '../screens/details_screen.dart';
 import 'equipment_image.dart';
 
@@ -25,10 +26,20 @@ class EquipmentListView extends StatelessWidget {
           subtitle: Text('${equipment.location} - ${equipment.priority}'),
           trailing: Text('${equipment.reports} reports'),
           onTap: () {
+            final solicitacao = Solicitacao(
+              id: equipment.codPatrimonio ?? '',
+              codSala: equipment.room,
+              material: equipment.name,
+              idDefeito: 1,
+              defeitoTitulo: equipment.details,
+              status: equipment.priority,
+              criadoEm: equipment.reportDate,
+              imageUrl: equipment.imageUrl,
+            );
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => ItemDetailScreen(equipment: equipment, index: index),
+                builder: (context) => ItemDetailScreen(solicitacao: solicitacao),
               ),
             );
           },

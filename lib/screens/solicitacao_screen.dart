@@ -35,7 +35,10 @@ class _SolicitacaoScreenState extends State<SolicitacaoScreen> {
         final bytes = await File(image.path).readAsBytes();
         provider.setImage(base64Encode(bytes));
       }
-    } catch (_) {}
+    } catch (e, stackTrace) {
+      debugPrint("Erro ao capturar foto: $e");
+      debugPrint(stackTrace.toString());
+    }
   }
 
   @override
@@ -139,9 +142,19 @@ class _SolicitacaoScreenState extends State<SolicitacaoScreen> {
           key: const ValueKey('step1_room_dropdown'),
           value: provider.selectedRoom,
           decoration: _getInputDecoration(Icons.location_on, theme),
-          hint: const Text('Selecione a Sala ou Laboratório'),
+          hint: const Text(
+            'Selecione a Sala ou Laboratório',
+            overflow: TextOverflow.ellipsis,
+          ),
+          isExpanded: true,
           items: provider.salas
-              .map((sala) => DropdownMenuItem(value: sala, child: Text(sala)))
+              .map((sala) => DropdownMenuItem(
+                    value: sala,
+                    child: Text(
+                      sala,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ))
               .toList(),
           onChanged: (val) => provider.setRoom(val),
         ),
@@ -267,7 +280,11 @@ class _SolicitacaoScreenState extends State<SolicitacaoScreen> {
             key: ValueKey('step3_eq_${provider.equipamentos.length}'),
             value: provider.selectedEquipment,
             decoration: _getInputDecoration(Icons.devices, theme),
-            hint: const Text('Selecione o Equipamento'),
+            hint: const Text(
+              'Selecione o Equipamento',
+              overflow: TextOverflow.ellipsis,
+            ),
+            isExpanded: true,
             items: provider.equipamentos.map((eq) {
               return DropdownMenuItem(
                 value: eq['cod_patrimonio'].toString(),
@@ -298,12 +315,19 @@ class _SolicitacaoScreenState extends State<SolicitacaoScreen> {
               key: ValueKey('step3_comp_${provider.componentes.length}'),
               value: provider.selectedComponent,
               decoration: _getInputDecoration(Icons.cable, theme),
-              hint: const Text('Selecione o Componente Afetado'),
+              hint: const Text(
+                'Selecione o Componente Afetado',
+                overflow: TextOverflow.ellipsis,
+              ),
+              isExpanded: true,
               items: provider.componentes
                   .map(
                     (c) => DropdownMenuItem(
                       value: c['id'].toString(),
-                      child: Text(c['nome'].toString()),
+                      child: Text(
+                        c['nome'].toString(),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   )
                   .toList(),
@@ -315,12 +339,19 @@ class _SolicitacaoScreenState extends State<SolicitacaoScreen> {
             key: ValueKey('step3_mob_${provider.mobiliarios.length}'),
             value: provider.selectedMobiliario,
             decoration: _getInputDecoration(Icons.chair, theme),
-            hint: const Text('Selecione a Mobília Afetada'),
+            hint: const Text(
+              'Selecione a Mobília Afetada',
+              overflow: TextOverflow.ellipsis,
+            ),
+            isExpanded: true,
             items: provider.mobiliarios
                 .map(
                   (m) => DropdownMenuItem(
                     value: m['id'].toString(),
-                    child: Text(m['nome'].toString()),
+                    child: Text(
+                      m['nome'].toString(),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 )
                 .toList(),
@@ -407,12 +438,19 @@ class _SolicitacaoScreenState extends State<SolicitacaoScreen> {
           ),
           value: provider.selectedDefect,
           decoration: _getInputDecoration(Icons.report_problem, theme),
-          hint: const Text('Selecione o Defeito Encontrado'),
+          hint: const Text(
+            'Selecione o Defeito Encontrado',
+            overflow: TextOverflow.ellipsis,
+          ),
+          isExpanded: true,
           items: defeitos
               .map(
                 (def) => DropdownMenuItem(
                   value: def['id'].toString(),
-                  child: Text(def['titulo'].toString()),
+                  child: Text(
+                    def['titulo'].toString(),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               )
               .toList(),
@@ -420,6 +458,7 @@ class _SolicitacaoScreenState extends State<SolicitacaoScreen> {
           disabledHint: Text(
             'Nenhum defeito encontrado',
             style: TextStyle(color: Colors.grey[400]),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
         const SizedBox(height: 20),
